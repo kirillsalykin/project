@@ -1,0 +1,8 @@
+app:
+  addr: 0.0.0.0:8000
+# database:
+#   host: "localhost"
+#   port: 5432
+#   username: "kanat"
+#   password: "kanat"
+#   database: "kanat"

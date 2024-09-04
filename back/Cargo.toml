@@ -1,6 +1,24 @@
 [package]
-name = "the-project"
+name = "project"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+path = "src/main.rs"
+name = "project"
+
 [dependencies]
+tokio = { version = "1.40.0", features = ["full"] }
+
+serde = { version = "1.0.209" }
+serde_json = { version = "1.0.127" }
+
+config = { version = "0.14", default-features = false, features = ["yaml"] }
+
+axum = { version = "0.7.5", features = ["json"] }
+async-graphql = { version = "7.0.9", features = ["uuid", "chrono", "tracing"] }
+async-graphql-axum = "7.0.9"
+

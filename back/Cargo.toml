@@ -19,6 +19,7 @@ serde_json = { version = "1.0.127" }
 config = { version = "0.14", default-features = false, features = ["yaml"] }
 
 axum = { version = "0.7.5", features = ["json"] }
+tower-http = { version = "0.5.2", features = ["cors"] }
 async-graphql = { version = "7.0.9", features = ["uuid", "chrono", "tracing"] }
 async-graphql-axum = "7.0.9"
 

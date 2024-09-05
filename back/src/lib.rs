@@ -9,6 +9,7 @@ use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use axum::{extract::Extension, routing::post, serve::Serve, Router};
 use configuration::Config;
 use std::net::SocketAddr;
+use tower_http::cors::CorsLayer;
 // use std::sync::Arc;
 
 pub struct App {
@@ -39,6 +40,7 @@ impl App {
             .route("/api", post(graphql_handler))
             // .layer(Extension(pool.clone()))
             // .layer(TraceLayer::new_for_http())
+            .layer(CorsLayer::permissive())
             .layer(Extension(schema));
 
         let listener = tokio::net::TcpListener::bind(config.app.addr)

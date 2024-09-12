@@ -23,3 +23,8 @@ tower-http = { version = "0.5.2", features = ["cors"] }
 async-graphql = { version = "7.0.9", features = ["uuid", "chrono", "tracing"] }
 async-graphql-axum = "7.0.9"
 
+anyhow = {version = "1.0.88"}
+secrecy = { version= "0.8.0" }
+thiserror = {version = "1.0.63"}
+uuid = { version = "1.10.0", features = ["v7"] }
+

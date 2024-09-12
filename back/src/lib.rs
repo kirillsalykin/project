@@ -2,7 +2,7 @@ pub mod api;
 pub mod configuration;
 
 use api::dummy_api::*;
-// use api::membership::*;
+use api::membership::*;
 // use async_graphql::extensions::Tracing;
 use async_graphql::{EmptySubscription, Object, Schema};
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
@@ -70,9 +70,9 @@ impl MutationRoot {
     async fn dummy(&self) -> DummyMutation {
         DummyMutation
     }
-    // async fn membership(&self) -> MembershipMutation {
-    //     MembershipMutation
-    // }
+    async fn membership(&self) -> MembershipMutation {
+        MembershipMutation
+    }
 }
 
 type TSchema = Schema<QueryRoot, MutationRoot, EmptySubscription>;

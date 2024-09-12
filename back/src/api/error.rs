@@ -31,9 +31,8 @@ pub enum TrackPurchaseError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum InternalError {
-    #[error("DatabaseError")]
-    DatabaseError(#[from] sqlx::Error),
-
+    // #[error("DatabaseError")]
+    // DatabaseError(#[from] sqlx::Error),
     #[error("GraphQLError")]
     GraphQLError(async_graphql::Error),
 

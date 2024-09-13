@@ -1,13 +1,18 @@
-import React, { useRef, useState } from "react";
-import { useQuery, useMutation } from 'urql';
-
+import React, { useRef, useState,  createContext, useContext, ReactNode } from "react";
 import ReactDOM from 'react-dom/client';
 import {
   createBrowserRouter,
   RouterProvider,
   Outlet
 } from "react-router-dom";
-import { Client, Provider, cacheExchange, fetchExchange } from 'urql';
+import {
+  Client,
+  Provider,
+  useQuery,
+  useMutation,
+  cacheExchange,
+  fetchExchange
+} from 'urql';
 
 import './index.css';
 
@@ -94,6 +99,8 @@ const SignUp: React.FC = () => {
     }
   `);
 
+  const { signin } = useAuth();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -105,7 +112,7 @@ const SignUp: React.FC = () => {
      if (error) {
       console.error('Error during sign up:', error.message);
     } else if (data && data.membership && data.membership.signUp) {
-      console.log('Signup Result (Token):', data.membership.signUp);
+      signin(data.membership.signUp);
     }
   };
 
@@ -154,11 +161,81 @@ const router = createBrowserRouter([
   },
 ]);
 
-const client = new Client({
-  url: "http://localhost:8000/api",
-  exchanges: [cacheExchange, fetchExchange],
-});
+interface AuthContextType {
+  signin: (token: string) => void;
+  signout: () => void;
+  getToken: () => string | null;
+}
 
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const [token, setToken] =  useState<string | null>(null);
+
+  const signin = (token: string) => {
+    console.log("TOKEN", token);
+    setToken(token);
+    localStorage.setItem('authToken', token);
+  };
+
+  const signout = () => {
+    setToken(null);
+    localStorage.removeItem('authToken');
+  };
+
+  const getToken = () => {
+    // read it from the localStorage as well
+    console.log("RETURN TOKEN", token);
+    return token;
+  };
+
+
+  return (
+    <AuthContext.Provider value={{ getToken, signin, signout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = (): AuthContextType => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+type TokenFunction = () => string | null;
+
+export const createUrqlClient = (getToken: TokenFunction): Client => {
+  return new Client({
+   url: "http://localhost:8000/api",
+   exchanges: [cacheExchange, fetchExchange],
+   fetchOptions: () => {
+     const token = getToken();
+     return {
+       headers: { authorization: token ? `Bearer ${token}` : '' },
+     };
+   }
+})
+};
+
+
+const App: React.FC = () => {
+  const { getToken } = useAuth();
+  const urqlClient = createUrqlClient(getToken);
+
+  return (
+      <Provider value={urqlClient}>
+        <RouterProvider router={router} />
+       </Provider>
+  );
+};
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -166,10 +243,8 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <React.StrictMode>
-
-    <Provider value={client}>
-      <RouterProvider router={router} />
-    </Provider>
-
+    <AuthProvider>
+      <App/>
+    </AuthProvider>
   </React.StrictMode>
 );

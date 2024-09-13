@@ -1,8 +1,9 @@
-import React, { useRef, useState,  createContext, useContext, ReactNode } from "react";
+import React, { useRef, useState, useCallback, useMemo, createContext, useContext, ReactNode } from "react";
 import ReactDOM from 'react-dom/client';
 import {
   createBrowserRouter,
   RouterProvider,
+  Link,
   Outlet
 } from "react-router-dom";
 import {
@@ -19,9 +20,9 @@ import './index.css';
 function Root() {
   return (<div>
     <div>
-    <a href="/sign-up">Sign up</a>
-    <a href="/sign-in">Sign in</a>
-    <a href="/dummy">Dummy</a>
+                  <Link to={`sign-up`}>Sign up</Link>
+                  <Link to={`sign-in`}>Sign in</Link>
+                  <Link to={`dummy`}>Dummy</Link>
     </div>
     ROOT
     <Outlet />
@@ -161,10 +162,12 @@ const router = createBrowserRouter([
   },
 ]);
 
+type TokenFunction = () => string | null;
+
 interface AuthContextType {
   signin: (token: string) => void;
   signout: () => void;
-  getToken: () => string | null;
+  getToken: TokenFunction;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -175,12 +178,13 @@ interface AuthProviderProps {
 
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+    console.log("USE AUTH_PROVIDER")
+
   const [token, setToken] =  useState<string | null>(null);
 
-  const signin = (token: string) => {
-    console.log("TOKEN", token);
-    setToken(token);
-    localStorage.setItem('authToken', token);
+  const signin = (newToken: string) => {
+    setToken(newToken);
+    localStorage.setItem('authToken', newToken);
   };
 
   const signout = () => {
@@ -188,21 +192,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('authToken');
   };
 
-  const getToken = () => {
+ const getToken = () => {
     // read it from the localStorage as well
     console.log("RETURN TOKEN", token);
     return token;
   };
 
+ const value = { getToken, signin, signout };
 
   return (
-    <AuthContext.Provider value={{ getToken, signin, signout }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = (): AuthContextType => {
+  console.log("USE AUTH")
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
@@ -210,13 +216,14 @@ export const useAuth = (): AuthContextType => {
   return context;
 };
 
-type TokenFunction = () => string | null;
 
 export const createUrqlClient = (getToken: TokenFunction): Client => {
+  console.log("CREATE URQL");
   return new Client({
    url: "http://localhost:8000/api",
    exchanges: [cacheExchange, fetchExchange],
    fetchOptions: () => {
+     console.log("FETCH_OPTIONS");
      const token = getToken();
      return {
        headers: { authorization: token ? `Bearer ${token}` : '' },
@@ -230,6 +237,8 @@ const App: React.FC = () => {
   const { getToken } = useAuth();
   const urqlClient = createUrqlClient(getToken);
 
+  console.log("RENDER_APP")
+
   return (
       <Provider value={urqlClient}>
         <RouterProvider router={router} />
@@ -237,14 +246,20 @@ const App: React.FC = () => {
   );
 };
 
+
+const App2: React.FC = () => {
+return (    <AuthProvider>
+      <App/>
+    </AuthProvider>
+);
+}
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
 root.render(
-  <React.StrictMode>
-    <AuthProvider>
-      <App/>
-    </AuthProvider>
-  </React.StrictMode>
+  // <React.StrictMode>
+  <App2/>
+  // </React.StrictMode>
 );

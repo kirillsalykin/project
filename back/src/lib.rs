@@ -6,7 +6,10 @@ use api::membership::*;
 // use async_graphql::extensions::Tracing;
 use async_graphql::{EmptySubscription, Object, Schema};
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
-use axum::{extract::Extension, routing::post, serve::Serve, Router};
+use axum::{
+    extract::Extension, extract::State, http::header::HeaderMap, routing::post, serve::Serve,
+    Router,
+};
 use configuration::Config;
 use std::net::SocketAddr;
 use tower_http::cors::CorsLayer;
@@ -40,8 +43,8 @@ impl App {
             .route("/api", post(graphql_handler))
             // .layer(Extension(pool.clone()))
             // .layer(TraceLayer::new_for_http())
-            .layer(CorsLayer::permissive())
-            .layer(Extension(schema));
+            .with_state(schema)
+            .layer(CorsLayer::permissive());
 
         let listener = tokio::net::TcpListener::bind(config.app.addr)
             .await
@@ -77,6 +80,16 @@ impl MutationRoot {
 
 type TSchema = Schema<QueryRoot, MutationRoot, EmptySubscription>;
 
-async fn graphql_handler(schema: Extension<TSchema>, req: GraphQLRequest) -> GraphQLResponse {
+async fn graphql_handler(
+    State(schema): State<TSchema>,
+    headers: HeaderMap,
+    req: GraphQLRequest,
+) -> GraphQLResponse {
+    let token = headers
+        .get("Authorization")
+        .and_then(|value| value.to_str().ok())
+        .map(|value| value.trim_start_matches("Bearer "));
+    println!("TOKEN: {:?}", token);
+
     schema.execute(req.into_inner()).await.into()
 }

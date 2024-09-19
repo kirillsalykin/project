@@ -16,9 +16,13 @@ import {
 } from 'urql';
 
 import './index.css';
+import './main.css';
 
 function Root() {
   return (<div>
+    <h1 className="text-3xl font-bold underline">
+      Hello world!
+    </h1>
     <div>
                   <Link to={`sign-up`}>Sign up</Link>
                   <Link to={`sign-in`}>Sign in</Link>

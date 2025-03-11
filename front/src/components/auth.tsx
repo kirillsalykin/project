@@ -1,41 +1,68 @@
-import React, { useRef, useState, useCallback, useMemo, createContext, useContext, ReactNode } from "react";
-
-export type TokenFunction = () => string | null;
+import { useState, createContext, useContext, ReactNode, useEffect } from "react";
 
 interface AuthContextType {
   signin: (token: string) => void;
   signout: () => void;
-  getToken: TokenFunction;
+  getToken: () => string | null;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
   children: ReactNode;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [token, setToken] =  useState<string | null>(null);
+// Safely interact with localStorage
+const safeGetItem = (key: string): string | null => {
+  try {
+    return localStorage.getItem(key);
+  } catch (error) {
+    console.error("Error accessing localStorage:", error);
+    return null;
+  }
+};
+
+const safeSetItem = (key: string, value: string): void => {
+  try {
+    localStorage.setItem(key, value);
+  } catch (error) {
+    console.error("Error setting localStorage:", error);
+  }
+};
+
+const safeRemoveItem = (key: string): void => {
+  try {
+    localStorage.removeItem(key);
+  } catch (error) {
+    console.error("Error removing from localStorage:", error);
+  }
+};
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const [token, setToken] = useState<string | null>(null);
+
+  // Load token from localStorage on initial render
+  useEffect(() => {
+    const storedToken = safeGetItem('authToken');
+    if (storedToken) {
+      setToken(storedToken);
+    }
+  }, []);
 
   const signin = (newToken: string) => {
     setToken(newToken);
-    localStorage.setItem('authToken', newToken);
+    safeSetItem('authToken', newToken);
   };
 
   const signout = () => {
     setToken(null);
-    localStorage.removeItem('authToken');
+    safeRemoveItem('authToken');
   };
 
- const getToken = () => {
-    // read it from the localStorage as well
-    return token;
-  };
-
- const value = { getToken, signin, signout };
+  const getToken = () => token;
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ getToken, signin, signout }}>
       {children}
     </AuthContext.Provider>
   );

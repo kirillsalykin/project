@@ -1,0 +1,1 @@
+{"root":["./src/index.tsx","./src/react-app-env.d.ts","./src/components/formelements.tsx","./src/components/auth.tsx","./src/pages/root.tsx","./src/pages/signin.tsx","./src/pages/signup.tsx","./src/services/api.ts"],"version":"5.8.2"}

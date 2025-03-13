@@ -1,5 +1,5 @@
+use project::app::App;
 use project::configuration::Config;
-use project::App;
 
 #[tokio::main]
 async fn main() {
@@ -10,7 +10,5 @@ async fn main() {
         .try_deserialize::<Config>()
         .unwrap();
 
-    let app = App::build(config).await;
-    app.run_forever().await;
+    App::run(config).await;
 }
-

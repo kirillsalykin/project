@@ -11,20 +11,24 @@ path = "src/main.rs"
 name = "project"
 
 [dependencies]
-tokio = { version = "1.40.0", features = ["full"] }
+tokio = { version = "1.44.0", features = ["full"] }
 
 serde = { version = "1.0.209" }
-serde_json = { version = "1.0.127" }
+serde_json = { version = "1.0.140" }
 
-config = { version = "0.14", default-features = false, features = ["yaml"] }
+config = { version = "0.15.11", default-features = false, features = ["yaml"] }
 
-axum = { version = "0.7.5", features = ["json"] }
-tower-http = { version = "0.5.2", features = ["cors"] }
-async-graphql = { version = "7.0.9", features = ["uuid", "chrono", "tracing"] }
-async-graphql-axum = "7.0.9"
+sqlx = { version = "0.8.2", features = ["runtime-tokio", "macros", "postgres", "migrate", "uuid", "chrono" ] }
 
-anyhow = {version = "1.0.88"}
-secrecy = { version= "0.8.0" }
-thiserror = {version = "1.0.63"}
-uuid = { version = "1.10.0", features = ["v7"] }
+axum = { version = "0.8.1", features = ["json"] }
+api_response_derive = { path = "../api_response_derive" }
+tower-http = { version = "0.6.2", features = ["cors", "timeout"] }
+utoipa = { version = "5.3.1", features = ["uuid", "axum_extras", "openapi_extensions"] }
+utoipa-axum = "0.2.0"
+utoipa-swagger-ui = { version = "9.0.0", features = ["axum"] }
+
+anyhow = {version = "1.0.97"}
+thiserror = {version = "2.0.12"}
+secrecy = { version= "0.10.3", features = ["serde"] }
+uuid = { version = "1.15.1", features = ["v7", "serde"] }
 

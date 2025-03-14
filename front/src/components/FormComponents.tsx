@@ -1,8 +1,8 @@
 import React, { ReactNode, useState } from 'react';
 import { UseFormRegister, FieldValues, FieldError, UseFormReturn, useForm, Path } from 'react-hook-form';
 import { ZodType } from 'zod';
-import { ApiErrorResponse } from '../utils/errors';
-import { AuthResult } from '../services/api';
+import { ApiError } from '../utils/errors';
+import { ApiResult } from '../services/http';
 import { Alert } from './UIComponents';
 import { colors, spacing, fontSizes, fontWeights, borderRadius } from '../styles';
 
@@ -218,32 +218,38 @@ export const FormButton: React.FC<FormButtonProps> = ({
   );
 };
 
+// Generic interface for any object with potential field errors
+interface ErrorWithFields {
+  error?: string;
+  fieldErrors?: Record<string, string>;
+}
+
 // Hook for handling API errors in forms
 export function useApiErrorHandler<T extends FieldValues>(
   form: UseFormReturn<T>
 ): {
-  handleApiError: (result: AuthResult) => string | null;
+  handleApiError: <E extends ErrorWithFields>(error: E) => string | undefined;
   resetErrors: () => void;
 } {
   return {
-    handleApiError: (result: AuthResult): string | null => {
+    handleApiError: <E extends ErrorWithFields>(error: E): string | undefined => {
       // Reset previous errors first
       form.clearErrors();
       
       // Handle field errors if any
-      if (result.fieldErrors) {
-        Object.entries(result.fieldErrors).forEach(([field, messages]) => {
-          if (messages && messages.length > 0) {
+      if (error.fieldErrors) {
+        Object.entries(error.fieldErrors).forEach(([field, message]) => {
+          if (message) {
             form.setError(field as Path<T>, { 
               type: 'server', 
-              message: messages[0] 
+              message: message 
             });
           }
         });
       }
       
-      // Return the global error message if any
-      return result.error;
+      // Return the error message
+      return error.error;
     },
     
     resetErrors: () => {
@@ -270,11 +276,11 @@ export const FormContainer: React.FC<{ children: ReactNode }> = ({ children }) =
 
 // Custom hook for form handling with API integration
 export function useApiForm<TFormValues extends FieldValues, TResponse>(
-  apiMethod: (data: TFormValues) => Promise<AuthResult>,
-  onSuccess?: (data: TResponse, result: AuthResult) => void
+  apiMethod: (data: TFormValues) => Promise<ApiResult<TResponse>>,
+  onSuccess?: (data: TResponse) => void
 ) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [globalError, setGlobalError] = useState<string | null>(null);
+  const [globalError, setGlobalError] = useState<string | undefined>(undefined);
   
   const methods = useForm<TFormValues>({
     mode: 'onBlur'
@@ -284,19 +290,22 @@ export function useApiForm<TFormValues extends FieldValues, TResponse>(
   
   const onSubmit = async (data: TFormValues) => {
     setIsSubmitting(true);
-    setGlobalError(null);
+    setGlobalError(undefined);
     resetErrors();
     
     try {
       const result = await apiMethod(data);
       
-      if (result.error) {
-        // Handle API errors
-        const error = handleApiError(result);
-        setGlobalError(error);
-      } else if (result.token && onSuccess) {
-        // Call success handler with the response data
-        onSuccess(result.data as TResponse, result);
+      // Check if it's a success response (has data property)
+      if ('data' in result) {
+        // Success case
+        if (onSuccess && result.data) {
+          onSuccess(result.data);
+        }
+      } else {
+        // Error case - no data property means it's an ApiError
+        const errorMessage = handleApiError(result);
+        setGlobalError(errorMessage);
       }
     } catch (err) {
       setGlobalError('An unexpected error occurred');

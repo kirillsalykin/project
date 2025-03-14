@@ -1,11 +1,6 @@
 import { SignUpInput, AuthenticatedResponse } from '../types/api';
-import { http, ApiResult } from './http';
-
-export interface AuthResult {
-  token: string | null;
-  error: string | null;
-  fieldErrors?: Record<string, string[]>;
-}
+import { http, ApiResult, ApiSuccess } from './http';
+import { ApiError } from '../utils/errors';
 
 // Map of status codes to custom error messages
 const ERROR_MESSAGES: Record<number, string> = {

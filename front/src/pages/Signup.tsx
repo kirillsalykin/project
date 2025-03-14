@@ -1,5 +1,6 @@
 import { useAuth } from '../components/auth';
-import { authService, AuthResult } from '../services/api';
+import { AuthenticatedResponse, SignUpInput } from '../types/api';
+import { http } from '../services/http';
 import { Card, CardHeader, CardBody, CardFooter, Link } from '../components/UIComponents';
 import { Form, FormInput, useApiForm, FormContainer } from '../components/FormComponents';
 
@@ -12,10 +13,9 @@ const SignUp = () => {
   const { signin } = useAuth();
 
   // Handle successful signup
-  const handleSignUpSuccess = (data: any, result: AuthResult) => {
-    if (result.token) {
-      signin(result.token);
-    }
+  const handleSignUpSuccess = (data: AuthenticatedResponse) => {
+    // TypeScript guarantees token exists per the type definition
+    signin(data.token);
   };
 
   // Create form with API integration
@@ -24,9 +24,12 @@ const SignUp = () => {
     isSubmitting, 
     globalError, 
     handleSubmit 
-  } = useApiForm<SignUpFormValues, any>(
-    // API method to call
-    (data) => authService.signUp(data.email, data.password),
+  } = useApiForm<SignUpFormValues, AuthenticatedResponse>(
+    // API method to call - use HTTP client directly
+    (data) => http.post<AuthenticatedResponse>('/membership/sign-up', {
+      email: data.email,
+      password: data.password
+    } as SignUpInput),
     // Success handler
     handleSignUpSuccess
   );

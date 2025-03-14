@@ -1,15 +1,19 @@
 // HTTP client with auth token handling
-import { ApiErrorResponse, parseApiError } from '../utils/errors';
+import { ApiResponse, ApiError } from '../utils/errors';
 
 const API_URL = 'http://localhost:8000';
 
-// Extended response type including field errors
-export interface ApiResult<T> {
-  data?: T;
-  error: string | null;
-  fieldErrors?: Record<string, string[]>;
-  statusCode?: number;
+/**
+ * Success response interface with data
+ */
+export interface ApiSuccess<T> extends ApiResponse {
+  data: T;
 }
+
+/**
+ * Standard API result interface - can be success or error
+ */
+export type ApiResult<T> = ApiSuccess<T> | ApiError;
 
 /**
  * Creates a fetch request with authentication headers if a token is provided
@@ -43,79 +47,50 @@ async function fetchWithAuth(
   return fetch(fullUrl, requestOptions);
 }
 
-// Custom error class for HTTP errors that includes status code and parsed response
-export class HttpError extends Error {
-  status: number;
-  data?: any;
-  apiError: ApiErrorResponse;
-
-  constructor(status: number, message: string, data?: any) {
-    super(message);
-    this.name = 'HttpError';
-    this.status = status;
-    this.data = data;
-    this.apiError = parseApiError(data); // Parse to standardized format
-  }
-  
-  // Convert HttpError to standard result format
-  toApiResult<T>(): ApiResult<T> {
-    return {
-      data: undefined,
-      error: this.message,
-      fieldErrors: this.apiError.fieldErrors,
-      statusCode: this.status
-    };
-  }
-}
+// We'll use ApiError directly instead of a custom HTTP error class
 
 /**
  * Helper function to handle API error responses
  */
 async function handleErrorResponse(response: Response): Promise<never> {
   const status = response.status;
-  let errorMessage = getDefaultErrorMessage(status);
-  let errorData;
-
-  // Try to parse error body as JSON
+  
   try {
+    // Parse JSON response if available
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
-      errorData = await response.json();
+      const errorData = await response.json();
       
-      // Use first global error as the main message if available
-      if (errorData.globalErrors && Array.isArray(errorData.globalErrors) && errorData.globalErrors.length > 0) {
-        errorMessage = errorData.globalErrors[0];
-      }
-      // Fallback to message field if present
-      else if (errorData.message) {
-        errorMessage = errorData.message;
-      }
+      // Add status code to the error data
+      const apiError: ApiError = {
+        ...errorData,
+        statusCode: status
+      };
       
-      // If response doesn't have our expected format, normalize it
-      if (!errorData.globalErrors && !errorData.fieldErrors) {
-        errorData = {
-          globalErrors: [errorMessage]
-        };
-      }
+      throw apiError;
     } else {
-      // Handle non-JSON errors
-      const textError = await response.text();
-      if (textError) {
-        errorMessage = textError;
-        // Create error data with appropriate format
-        errorData = { globalErrors: [textError] };
-      } else {
-        // Empty response, use default message
-        errorData = { globalErrors: [errorMessage] };
-      }
+      // For non-JSON responses, create a simple error
+      const text = await response.text();
+      throw {
+        error: text || getDefaultErrorMessage(status),
+        statusCode: status,
+        fieldErrors: {}
+      } as ApiError;
     }
   } catch (e) {
-    console.error('Failed to parse error response:', e);
-    // Create error data for parse error
-    errorData = { globalErrors: ['Failed to parse server response'] };
+    // If parsing fails, or any other error occurs
+    if (e.statusCode) {
+      // If it's already our ApiError format, just rethrow
+      throw e;
+    }
+    
+    // Otherwise create a simple error
+    throw {
+      error: getDefaultErrorMessage(status),
+      statusCode: status,
+      fieldErrors: {}
+    } as ApiError;
   }
-
-  throw new HttpError(status, errorMessage, errorData);
 }
 
 /**

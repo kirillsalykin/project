@@ -3,6 +3,14 @@ import { ApiErrorResponse, parseApiError } from '../utils/errors';
 
 const API_URL = 'http://localhost:8000';
 
+// Extended response type including field errors
+export interface ApiResult<T> {
+  data?: T;
+  error: string | null;
+  fieldErrors?: Record<string, string[]>;
+  statusCode?: number;
+}
+
 /**
  * Creates a fetch request with authentication headers if a token is provided
  */
@@ -48,6 +56,16 @@ export class HttpError extends Error {
     this.data = data;
     this.apiError = parseApiError(data); // Parse to standardized format
   }
+  
+  // Convert HttpError to standard result format
+  toApiResult<T>(): ApiResult<T> {
+    return {
+      data: undefined,
+      error: this.message,
+      fieldErrors: this.apiError.fieldErrors,
+      statusCode: this.status
+    };
+  }
 }
 
 /**
@@ -55,7 +73,7 @@ export class HttpError extends Error {
  */
 async function handleErrorResponse(response: Response): Promise<never> {
   const status = response.status;
-  let errorMessage = `HTTP error ${status}`;
+  let errorMessage = getDefaultErrorMessage(status);
   let errorData;
 
   // Try to parse error body as JSON
@@ -72,18 +90,50 @@ async function handleErrorResponse(response: Response): Promise<never> {
       else if (errorData.message) {
         errorMessage = errorData.message;
       }
+      
+      // If response doesn't have our expected format, normalize it
+      if (!errorData.globalErrors && !errorData.fieldErrors) {
+        errorData = {
+          globalErrors: [errorMessage]
+        };
+      }
     } else {
       // Handle non-JSON errors
       const textError = await response.text();
       if (textError) {
         errorMessage = textError;
+        // Create error data with appropriate format
+        errorData = { globalErrors: [textError] };
+      } else {
+        // Empty response, use default message
+        errorData = { globalErrors: [errorMessage] };
       }
     }
   } catch (e) {
     console.error('Failed to parse error response:', e);
+    // Create error data for parse error
+    errorData = { globalErrors: ['Failed to parse server response'] };
   }
 
   throw new HttpError(status, errorMessage, errorData);
+}
+
+/**
+ * Get a default error message based on HTTP status code
+ */
+function getDefaultErrorMessage(status: number): string {
+  switch (status) {
+    case 400: return 'Bad request';
+    case 401: return 'Authentication required';
+    case 403: return 'Access forbidden';
+    case 404: return 'Resource not found';
+    case 409: return 'Conflict with current state';
+    case 422: return 'Validation failed';
+    case 429: return 'Too many requests';
+    case 500: return 'Server error';
+    case 503: return 'Service unavailable';
+    default: return `HTTP error ${status}`;
+  }
 }
 
 /**
@@ -154,5 +204,47 @@ export const http = {
     }
     
     return response.json();
+  },
+  
+  /**
+   * Send a request and handle both success and error cases with a standardized return format
+   */
+  request: async <T>(method: string, url: string, data?: any, token?: string): Promise<ApiResult<T>> => {
+    try {
+      let response;
+      
+      // Choose the appropriate method
+      if (method.toUpperCase() === 'GET') {
+        response = await http.get<T>(url, token);
+      } else if (method.toUpperCase() === 'POST') {
+        response = await http.post<T>(url, data, token);
+      } else if (method.toUpperCase() === 'PUT') {
+        response = await http.put<T>(url, data, token);
+      } else if (method.toUpperCase() === 'DELETE') {
+        response = await http.delete<T>(url, token);
+      } else {
+        throw new Error(`Unsupported HTTP method: ${method}`);
+      }
+      
+      // Return successful response
+      return {
+        data: response,
+        error: null
+      };
+    } catch (error) {
+      console.error(`${method} request error:`, error);
+      
+      // Handle HttpError with field and global errors
+      if (error instanceof HttpError) {
+        return error.toApiResult<T>();
+      }
+      
+      // Handle other errors
+      return {
+        error: error instanceof Error 
+          ? error.message 
+          : 'Network error, please check your connection'
+      };
+    }
   }
 };

@@ -1,103 +1,61 @@
 import { SignUpInput, AuthenticatedResponse } from '../types/api';
-import { http, HttpError } from './http';
+import { http, ApiResult } from './http';
 
 export interface AuthResult {
   token: string | null;
   error: string | null;
+  fieldErrors?: Record<string, string[]>;
 }
+
+// Map of status codes to custom error messages
+const ERROR_MESSAGES: Record<number, string> = {
+  401: 'Invalid email or password',
+  404: 'Account not found',
+  422: 'Please check your input',
+  429: 'Too many attempts, please try again later',
+  500: 'Server error, please try again later'
+};
 
 // Auth service with real API integration
 export const authService = {
-  // Sign up with email and password
-  signUp: async (email: string, password: string): Promise<AuthResult> => {
-    try {
-      const data = await http.post<AuthenticatedResponse>('/membership/sign-up', {
-        email,
-        password,
-      } as SignUpInput);
+  // Generic method for auth operations
+  authRequest: async (endpoint: string, email: string, password: string): Promise<AuthResult> => {
+    const result = await http.request<AuthenticatedResponse>('POST', endpoint, {
+      email,
+      password,
+    } as SignUpInput);
+    
+    if (result.error) {
+      // Customize error messages based on HTTP status if available
+      const errorMessage = result.statusCode && ERROR_MESSAGES[result.statusCode] 
+        ? ERROR_MESSAGES[result.statusCode]
+        : result.error;
       
-      return {
-        token: data.token,
-        error: null
-      };
-    } catch (error) {
-      console.error('Sign up error:', error);
-      
-      // Handle specific validation errors (HTTP 400)
-      if (error instanceof HttpError && error.status === 400) {
-        return {
-          token: null,
-          error: error.message // This will contain the formatted validation message
-        };
-      }
-      
-      // Handle other errors
       return {
         token: null,
-        error: error instanceof Error 
-          ? error.message 
-          : 'Network error, please check your connection'
+        error: errorMessage,
+        fieldErrors: result.fieldErrors
       };
     }
+    
+    return {
+      token: result.data?.token || null,
+      error: null
+    };
+  },
+  
+  // Sign up with email and password
+  signUp: async (email: string, password: string): Promise<AuthResult> => {
+    return authService.authRequest('/membership/sign-up', email, password);
   },
 
   // Sign in with email and password
   signIn: async (email: string, password: string): Promise<AuthResult> => {
-    try {
-      const data = await http.post<AuthenticatedResponse>('/membership/sign-in', {
-        email,
-        password,
-      } as SignUpInput);
-      
-      return {
-        token: data.token,
-        error: null
-      };
-    } catch (error) {
-      console.error('Sign in error:', error);
-      
-      // Handle HTTP errors based on status code
-      if (error instanceof HttpError) {
-        if (error.status === 400) {
-          // Validation error
-          return {
-            token: null,
-            error: error.message
-          };
-        } else if (error.status === 401) {
-          // Unauthorized
-          return {
-            token: null,
-            error: 'Invalid email or password'
-          };
-        } else if (error.status === 404) {
-          // Not found
-          return {
-            token: null,
-            error: 'The requested resource was not found'
-          };
-        } else if (error.status >= 500) {
-          // Server error
-          return {
-            token: null,
-            error: 'Server error, please try again later'
-          };
-        }
-      }
-      
-      // Default error handling
-      return {
-        token: null,
-        error: error instanceof Error 
-          ? error.message 
-          : 'Network error, please check your connection'
-      };
-    }
+    return authService.authRequest('/membership/sign-in', email, password);
   },
 
   // Legacy method for compatibility
   authenticate: async (email: string, password: string = "password"): Promise<AuthResult> => {
-    // Use the sign in method for authentication
     return authService.signIn(email, password);
   }
 };

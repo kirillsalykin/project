@@ -1,7 +1,9 @@
-import React, { ReactNode } from 'react';
-import { UseFormRegister, FieldValues, FieldError, UseFormReturn } from 'react-hook-form';
+import React, { ReactNode, useState } from 'react';
+import { UseFormRegister, FieldValues, FieldError, UseFormReturn, useForm, Path } from 'react-hook-form';
 import { ZodType } from 'zod';
 import { ApiErrorResponse } from '../utils/errors';
+import { AuthResult } from '../services/api';
+import { Alert } from './UIComponents';
 
 // Form input with error display
 interface FormInputProps {
@@ -13,6 +15,7 @@ interface FormInputProps {
   error?: FieldError;
   className?: string;
   required?: boolean;
+  validation?: Record<string, any>;
 }
 
 export const FormInput: React.FC<FormInputProps> = ({ 
@@ -23,30 +26,66 @@ export const FormInput: React.FC<FormInputProps> = ({
   register, 
   error, 
   className = '',
-  required = false
+  required = false,
+  validation = {}
 }) => {
-  const baseInputStyles = `
-    w-full px-3 py-2 border rounded-md 
-    bg-gray-50 focus:bg-white focus:outline-none 
-    focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-  `;
+  const inputStyles = {
+    container: {
+      marginBottom: '0.75rem',
+      width: '100%'
+    },
+    label: {
+      display: 'block',
+      marginBottom: '0.5rem',
+      fontSize: '0.875rem',
+      fontWeight: 500,
+      color: '#374151'  // Gray 700
+    },
+    input: {
+      width: '100%',
+      padding: '0.5rem 0.75rem',
+      backgroundColor: '#F9FAFB',  // Gray 50
+      border: '1px solid #D1D5DB',  // Gray 300
+      borderRadius: '0.375rem',
+      fontSize: '0.875rem',
+      boxSizing: 'border-box' as const
+    },
+    inputError: {
+      borderColor: '#FCA5A5',  // Red 300
+    },
+    errorText: {
+      marginTop: '0.25rem',
+      fontSize: '0.75rem',
+      color: '#DC2626'  // Red 600
+    },
+    required: {
+      color: '#EF4444'  // Red 500
+    }
+  };
   
-  const errorInputStyles = 'border-red-300 focus:border-red-500 focus:ring-red-500';
+  // Add required validation if specified
+  if (required && !validation.required) {
+    validation.required = `${label} is required`;
+  }
   
   return (
-    <div className="mb-4">
-      <label htmlFor={id} className="block mb-2 text-sm font-medium text-gray-700">
-        {label} {required && <span className="text-red-500">*</span>}
+    <div style={inputStyles.container}>
+      <label htmlFor={id} style={inputStyles.label}>
+        {label} {required && <span style={inputStyles.required}>*</span>}
       </label>
       <input
         id={id}
         type={type}
         placeholder={placeholder}
-        className={`${baseInputStyles} ${error ? errorInputStyles : 'border-gray-300'} ${className}`}
-        {...register(id)}
+        style={{
+          ...inputStyles.input,
+          ...(error ? inputStyles.inputError : {})
+        }}
+        className={className}
+        {...register(id, validation)}
       />
       {error && (
-        <p className="mt-1 text-sm text-red-600">{error.message}</p>
+        <p style={inputStyles.errorText}>{error.message}</p>
       )}
     </div>
   );
@@ -58,33 +97,91 @@ interface FormErrorProps {
 }
 
 export const FormError: React.FC<FormErrorProps> = ({ error }) => {
+  const errorStyles = {
+    container: {
+      padding: '0.75rem',
+      marginBottom: '1rem',
+      fontSize: '0.875rem',
+      color: '#B91C1C',  // Red 700
+      backgroundColor: '#FEF2F2',  // Red 50
+      borderRadius: '0.375rem',
+      border: '1px solid #FEE2E2'  // Red 100
+    }
+  };
+
   return (
-    <div className="p-3 mb-4 text-sm text-red-700 bg-red-50 rounded-md border border-red-100">
+    <div style={errorStyles.container}>
       {error}
     </div>
   );
 };
 
-// Global errors display
-interface GlobalErrorsProps {
-  errors: string[];
+// Form with React Hook Form integration
+interface FormProps<TFormValues extends FieldValues> {
+  children: ReactNode;
+  onSubmit: (data: TFormValues) => Promise<void> | void;
+  methods: UseFormReturn<TFormValues>;
+  isSubmitting?: boolean;
+  globalError?: string | null;
+  submitText?: string;
+  className?: string;
 }
 
-export const GlobalErrors: React.FC<GlobalErrorsProps> = ({ errors }) => {
-  if (errors.length === 0) return null;
-  
+export function Form<TFormValues extends FieldValues>({
+  children,
+  onSubmit,
+  methods,
+  isSubmitting = false,
+  globalError = null,
+  submitText = 'Submit',
+  className = ''
+}: FormProps<TFormValues>) {
+  const formStyles = {
+    form: {
+      width: '100%',
+      display: 'flex',
+      flexDirection: 'column' as const,
+      gap: '0.5rem'
+    },
+    button: {
+      width: '100%',
+      padding: '0.5rem 1rem',
+      backgroundColor: '#4F46E5', // Indigo primary color
+      color: '#FFFFFF',
+      border: 'none',
+      borderRadius: '0.375rem',
+      fontSize: '0.875rem',
+      fontWeight: 500,
+      cursor: 'pointer',
+      marginTop: '0.75rem'
+    },
+    buttonDisabled: {
+      opacity: 0.5,
+      cursor: 'not-allowed'
+    }
+  };
+
   return (
-    <div className="p-3 mb-4 bg-red-50 border border-red-100 rounded-md">
-      {errors.length === 1 ? (
-        <p className="text-sm text-red-700">{errors[0]}</p>
-      ) : (
-        <ul className="list-disc pl-5 text-sm text-red-700">
-          {errors.map((error, index) => (
-            <li key={index}>{error}</li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <form 
+      onSubmit={methods.handleSubmit(onSubmit)} 
+      style={{ ...formStyles.form, ...(className ? {} : {}) }}
+      className={className}
+    >
+      {children}
+      
+      {globalError && <Alert type="error" message={globalError} />}
+      
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        style={{
+          ...formStyles.button,
+          ...(isSubmitting ? formStyles.buttonDisabled : {})
+        }}
+      >
+        {isSubmitting ? 'Processing...' : submitText}
+      </button>
+    </form>
   );
 };
 
@@ -124,26 +221,19 @@ export const FormButton: React.FC<FormButtonProps> = ({
 export function useApiErrorHandler<T extends FieldValues>(
   form: UseFormReturn<T>
 ): {
-  handleApiError: (error: any) => ApiErrorResponse;
+  handleApiError: (result: AuthResult) => string | null;
+  resetErrors: () => void;
 } {
   return {
-    handleApiError: (error: any): ApiErrorResponse => {
-      let apiError: ApiErrorResponse;
+    handleApiError: (result: AuthResult): string | null => {
+      // Reset previous errors first
+      form.clearErrors();
       
-      if (error instanceof Error && 'apiError' in error) {
-        apiError = (error as any).apiError;
-      } else {
-        // Create a default error if the structure doesn't match
-        apiError = {
-          globalErrors: [error instanceof Error ? error.message : 'An unexpected error occurred']
-        };
-      }
-      
-      // Set field errors on the form
-      if (apiError.fieldErrors) {
-        Object.entries(apiError.fieldErrors).forEach(([field, messages]) => {
+      // Handle field errors if any
+      if (result.fieldErrors) {
+        Object.entries(result.fieldErrors).forEach(([field, messages]) => {
           if (messages && messages.length > 0) {
-            form.setError(field as any, { 
+            form.setError(field as Path<T>, { 
               type: 'server', 
               message: messages[0] 
             });
@@ -151,7 +241,75 @@ export function useApiErrorHandler<T extends FieldValues>(
         });
       }
       
-      return apiError;
+      // Return the global error message if any
+      return result.error;
+    },
+    
+    resetErrors: () => {
+      form.clearErrors();
     }
+  };
+}
+
+// Form container with standardized styling and improved layout
+export const FormContainer: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const containerStyles = {
+    width: '100%',
+    maxWidth: '28rem',
+    margin: '1.5rem auto',
+    padding: '0 1rem'
+  };
+  
+  return (
+    <div style={containerStyles}>
+      {children}
+    </div>
+  );
+};
+
+// Custom hook for form handling with API integration
+export function useApiForm<TFormValues extends FieldValues, TResponse>(
+  apiMethod: (data: TFormValues) => Promise<AuthResult>,
+  onSuccess?: (data: TResponse, result: AuthResult) => void
+) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [globalError, setGlobalError] = useState<string | null>(null);
+  
+  const methods = useForm<TFormValues>({
+    mode: 'onBlur'
+  });
+  
+  const { handleApiError, resetErrors } = useApiErrorHandler(methods);
+  
+  const onSubmit = async (data: TFormValues) => {
+    setIsSubmitting(true);
+    setGlobalError(null);
+    resetErrors();
+    
+    try {
+      const result = await apiMethod(data);
+      
+      if (result.error) {
+        // Handle API errors
+        const error = handleApiError(result);
+        setGlobalError(error);
+      } else if (result.token && onSuccess) {
+        // Call success handler with the response data
+        onSuccess(result.data as TResponse, result);
+      }
+    } catch (err) {
+      setGlobalError('An unexpected error occurred');
+      console.error('Form submission error:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  return {
+    methods,
+    isSubmitting,
+    globalError,
+    setGlobalError,
+    handleSubmit: methods.handleSubmit(onSubmit)
   };
 }

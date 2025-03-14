@@ -1,74 +1,80 @@
-import { useState, FormEvent } from "react";
 import { useAuth } from '../components/auth';
-import { authService } from '../services/api';
-import { Input, Button, Card, CardHeader, CardBody, CardFooter, Alert, Link, Form } from '../components/UIComponents';
-import { layoutStyles } from '../styles';
+import { authService, AuthResult } from '../services/api';
+import { Card, CardHeader, CardBody, CardFooter, Link } from '../components/UIComponents';
+import { Form, FormInput, useApiForm, FormContainer } from '../components/FormComponents';
+
+interface SignUpFormValues {
+  email: string;
+  password: string;
+}
 
 const SignUp = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
   const { signin } = useAuth();
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const result = await authService.signUp(email, password);
-      
-      if (result.error) {
-        setError(result.error);
-      } else if (result.token) {
-        signin(result.token);
-      }
-    } catch (err) {
-      setError('An unexpected error occurred');
-    } finally {
-      setIsLoading(false);
+  // Handle successful signup
+  const handleSignUpSuccess = (data: any, result: AuthResult) => {
+    if (result.token) {
+      signin(result.token);
     }
   };
 
+  // Create form with API integration
+  const { 
+    methods, 
+    isSubmitting, 
+    globalError, 
+    handleSubmit 
+  } = useApiForm<SignUpFormValues, any>(
+    // API method to call
+    (data) => authService.signUp(data.email, data.password),
+    // Success handler
+    handleSignUpSuccess
+  );
+
+  // Get form functions
+  const { register, formState: { errors } } = methods;
+
   return (
-    <div style={layoutStyles.formContainer}>
+    <FormContainer>
       <Card>
         <CardHeader title="Create a new account" />
         <CardBody>
-          <Form onSubmit={handleSubmit}>
-            <Input
+          <Form
+            methods={methods}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            globalError={globalError}
+            submitText="Create account"
+          >
+            <FormInput
               label="Email address"
               id="email"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               placeholder="kirill.salykin@gmail.com"
               required
+              register={register}
+              error={errors.email}
+              validation={{
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: "Invalid email address"
+                }
+              }}
             />
             
-            <Input
+            <FormInput
               label="Password"
               id="password"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               required
-            />
-            
-            <Button 
-              type="submit" 
-              isLoading={isLoading}
-            >
-              Create account
-            </Button>
-            
-            {error && <Alert type="error" message={error} />}
-            
-            <Alert 
-              type="info" 
-              message="Create an account to get started. Use a valid email format."
+              register={register}
+              error={errors.password}
+              validation={{
+                minLength: {
+                  value: 6,
+                  message: "Password must be at least 6 characters"
+                }
+              }}
             />
           </Form>
         </CardBody>
@@ -80,7 +86,7 @@ const SignUp = () => {
           </p>
         </CardFooter>
       </Card>
-    </div>
+    </FormContainer>
   );
 };
 

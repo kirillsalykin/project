@@ -1,8 +1,7 @@
 import React, { ReactNode, useState } from 'react';
-import { UseFormRegister, FieldValues, FieldError, UseFormReturn, useForm, Path } from 'react-hook-form';
+import { UseFormRegister, FieldValues, FieldError, UseFormReturn, useForm, Path, UseFormSetError } from 'react-hook-form';
 import { ZodType } from 'zod';
-import { ApiError } from '../utils/errors';
-import { ApiResult } from '../services/http';
+import { ApiError } from '../services/api';
 import { Alert } from './UIComponents';
 import { colors, spacing, fontSizes, fontWeights, borderRadius } from '../styles';
 
@@ -296,14 +295,14 @@ export function useApiForm<TFormValues extends FieldValues, TResponse>(
     try {
       const result = await apiMethod(data);
       
-      // Check if it's a success response (has data property)
-      if ('data' in result) {
+      // Check result type
+      if (result.type === 'success') {
         // Success case
         if (onSuccess && result.data) {
           onSuccess(result.data);
         }
       } else {
-        // Error case - no data property means it's an ApiError
+        // Error case
         const errorMessage = handleApiError(result);
         setGlobalError(errorMessage);
       }

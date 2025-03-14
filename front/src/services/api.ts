@@ -1,56 +1,146 @@
 import { SignUpInput, AuthenticatedResponse } from '../types/api';
-import { http, ApiResult, ApiSuccess } from './http';
-import { ApiError } from '../utils/errors';
 
-// Map of status codes to custom error messages
-const ERROR_MESSAGES: Record<number, string> = {
-  401: 'Invalid email or password',
-  404: 'Account not found',
-  422: 'Please check your input',
-  429: 'Too many attempts, please try again later',
-  500: 'Server error, please try again later'
-};
+const API_URL = 'http://localhost:8000';
 
-// Auth service with real API integration
-export const authService = {
-  // Generic method for auth operations
-  authRequest: async (endpoint: string, email: string, password: string): Promise<AuthResult> => {
-    const result = await http.request<AuthenticatedResponse>('POST', endpoint, {
-      email,
-      password,
-    } as SignUpInput);
-    
-    if (result.error) {
-      // Customize error messages based on HTTP status if available
-      const errorMessage = result.statusCode && ERROR_MESSAGES[result.statusCode] 
-        ? ERROR_MESSAGES[result.statusCode]
-        : result.error;
-      
+/**
+ * API response type
+ */
+export type ApiResponseType = 'success' | 'error';
+
+/**
+ * Base API response interface
+ */
+export interface ApiResponse {
+  type: ApiResponseType;
+  statusCode?: number;  // HTTP status code
+}
+
+/**
+ * Interface for standardized API error format
+ */
+export interface ApiError extends ApiResponse {
+  type: 'error';
+  error?: string;                       // Primary error message
+  fieldErrors?: Record<string, string>; // Field-specific validation errors
+}
+
+/**
+ * Success response interface with data
+ */
+export interface ApiSuccess<T> extends ApiResponse {
+  type: 'success';
+  data: T;
+}
+
+/**
+ * Standard API result interface - can be success or error
+ */
+export type ApiResult<T> = ApiSuccess<T> | ApiError;
+
+/**
+ * Simple API client for making HTTP requests
+ */
+export const api = {
+  /**
+   * Make a fetch request to the API
+   */
+  fetch: async <T>(
+    method: string,
+    endpoint: string,
+    data?: any,
+    token?: string
+  ): Promise<ApiResult<T>> => {
+    const url = endpoint.startsWith('http') ? endpoint : `${API_URL}${endpoint}`;
+
+    // Build request options
+    const options: RequestInit = { method };
+    const headers = new Headers();
+
+    // Add content type for non-GET requests with data
+    if (method !== 'GET' && data) {
+      headers.set('Content-Type', 'application/json');
+      options.body = JSON.stringify(data);
+    }
+
+    // Add auth header if token provided
+    if (token) {
+      headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    options.headers = headers;
+
+    try {
+      // Make the request
+      const response = await fetch(url, options);
+
+      // Success response
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          type: 'success',
+          statusCode: response.status,
+          data
+        };
+      }
+
+      // Error response
+      const status = response.status;
+      let error: string | undefined = undefined;
+      let fieldErrors = {};
+
+      // Try to parse error response
+      if (response.headers.get('content-type')?.includes('application/json')) {
+        try {
+          const errorData = await response.json();
+          error = errorData.error;
+          fieldErrors = errorData.fieldErrors || {};
+        } catch (e) {
+          console.error('Error parsing error response:', e);
+        }
+      }
+
       return {
-        token: null,
-        error: errorMessage,
-        fieldErrors: result.fieldErrors
+        type: 'error',
+        statusCode: status,
+        ...(error && { error }),
+        fieldErrors
+      };
+    } catch (e) {
+      // Handle network or other errors
+      const error = e instanceof Error ? e.message : 'Network error';
+      return {
+        type: 'error',
+        error,
+        statusCode: 0
       };
     }
-    
-    return {
-      token: result.data?.token || null,
-      error: null
-    };
-  },
-  
-  // Sign up with email and password
-  signUp: async (email: string, password: string): Promise<AuthResult> => {
-    return authService.authRequest('/membership/sign-up', email, password);
   },
 
-  // Sign in with email and password
-  signIn: async (email: string, password: string): Promise<AuthResult> => {
-    return authService.authRequest('/membership/sign-in', email, password);
+  /**
+   * GET request
+   */
+  get: <T>(endpoint: string, token?: string): Promise<ApiResult<T>> => {
+    return api.fetch<T>('GET', endpoint, undefined, token);
   },
 
-  // Legacy method for compatibility
-  authenticate: async (email: string, password: string = "password"): Promise<AuthResult> => {
-    return authService.signIn(email, password);
+  /**
+   * POST request
+   */
+  post: <T>(endpoint: string, data: any, token?: string): Promise<ApiResult<T>> => {
+    return api.fetch<T>('POST', endpoint, data, token);
+  },
+
+  /**
+   * PUT request
+   */
+  put: <T>(endpoint: string, data: any, token?: string): Promise<ApiResult<T>> => {
+    return api.fetch<T>('PUT', endpoint, data, token);
+  },
+
+  /**
+   * DELETE request
+   */
+  delete: <T>(endpoint: string, token?: string): Promise<ApiResult<T>> => {
+    return api.fetch<T>('DELETE', endpoint, undefined, token);
   }
 };

@@ -1,6 +1,6 @@
 import { useAuth } from '../components/auth';
 import { AuthenticatedResponse, SignUpInput } from '../types/api';
-import { http } from '../services/http';
+import { api } from '../services/api';
 import { Card, CardHeader, CardBody, CardFooter, Link } from '../components/UIComponents';
 import { Form, FormInput, useApiForm, FormContainer } from '../components/FormComponents';
 
@@ -25,8 +25,8 @@ const SignIn = () => {
     globalError, 
     handleSubmit 
   } = useApiForm<SignInFormValues, AuthenticatedResponse>(
-    // API method to call - use HTTP client directly
-    (data) => http.post<AuthenticatedResponse>('/membership/sign-in', {
+    // API method to call
+    (data) => api.post<AuthenticatedResponse>('/membership/sign-in', {
       email: data.email,
       password: data.password
     } as SignUpInput),

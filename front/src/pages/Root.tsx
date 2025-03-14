@@ -66,7 +66,7 @@ export default function Root() {
                 Welcome to the Auth Demo
               </h1>
               <p style={{ fontSize: '0.875rem', color: '#6B7280' }}>
-                Please sign in with email <strong>kirill.salykin@gmail.com</strong> to continue
+                Please sign in or create an account to continue
               </p>
             </div>
           )}

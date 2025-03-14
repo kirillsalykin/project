@@ -43,3 +43,21 @@ impl IntoResponse for ApiError {
 }
 
 pub type ApiResult<T> = Result<T, ApiError>;
+
+// Example response
+//{
+//  "fieldErrors": {
+//    "email": [
+//      "Invalid email format",
+//      "This email is already registered"
+//    ],
+//    "password": [
+//      "Password must be at least 8 characters",
+//      "Password must include at least one uppercase letter"
+//    ]
+//  },
+//  "globalErrors": [
+//    "Authentication failed",
+//    "Server is in maintenance mode"
+//  ]
+//}

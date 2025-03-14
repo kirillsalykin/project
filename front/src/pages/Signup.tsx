@@ -18,7 +18,7 @@ const SignUp = () => {
     setError(null);
 
     try {
-      const result = await authService.authenticate(email);
+      const result = await authService.signUp(email, password);
       
       if (result.error) {
         setError(result.error);
@@ -68,7 +68,7 @@ const SignUp = () => {
             
             <Alert 
               type="info" 
-              message="For this demo, only kirill.salykin@gmail.com will work."
+              message="Create an account to get started. Use a valid email format."
             />
           </Form>
         </CardBody>

@@ -18,7 +18,7 @@ const SignIn = () => {
     setError(null);
 
     try {
-      const result = await authService.authenticate(email);
+      const result = await authService.signIn(email, password);
       
       if (result.error) {
         setError(result.error);

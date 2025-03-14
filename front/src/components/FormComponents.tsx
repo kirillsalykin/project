@@ -4,6 +4,7 @@ import { ZodType } from 'zod';
 import { ApiErrorResponse } from '../utils/errors';
 import { AuthResult } from '../services/api';
 import { Alert } from './UIComponents';
+import { colors, spacing, fontSizes, fontWeights, borderRadius } from '../styles';
 
 // Form input with error display
 interface FormInputProps {
@@ -31,35 +32,35 @@ export const FormInput: React.FC<FormInputProps> = ({
 }) => {
   const inputStyles = {
     container: {
-      marginBottom: '0.75rem',
+      marginBottom: spacing[3],
       width: '100%'
     },
     label: {
       display: 'block',
-      marginBottom: '0.5rem',
-      fontSize: '0.875rem',
-      fontWeight: 500,
-      color: '#374151'  // Gray 700
+      marginBottom: spacing[1],
+      fontSize: fontSizes.sm,
+      fontWeight: fontWeights.medium,
+      color: colors.gray[700]
     },
     input: {
       width: '100%',
-      padding: '0.5rem 0.75rem',
-      backgroundColor: '#F9FAFB',  // Gray 50
-      border: '1px solid #D1D5DB',  // Gray 300
-      borderRadius: '0.375rem',
-      fontSize: '0.875rem',
+      padding: `${spacing[2]} ${spacing[3]}`,
+      backgroundColor: colors.gray[50],
+      border: `1px solid ${colors.gray[300]}`,
+      borderRadius: borderRadius.md,
+      fontSize: fontSizes.sm,
       boxSizing: 'border-box' as const
     },
     inputError: {
-      borderColor: '#FCA5A5',  // Red 300
+      borderColor: colors.red[100]
     },
     errorText: {
-      marginTop: '0.25rem',
-      fontSize: '0.75rem',
-      color: '#DC2626'  // Red 600
+      marginTop: spacing[1],
+      fontSize: fontSizes.xs,
+      color: colors.red[700]
     },
     required: {
-      color: '#EF4444'  // Red 500
+      color: colors.red[700]
     }
   };
   
@@ -99,13 +100,13 @@ interface FormErrorProps {
 export const FormError: React.FC<FormErrorProps> = ({ error }) => {
   const errorStyles = {
     container: {
-      padding: '0.75rem',
-      marginBottom: '1rem',
-      fontSize: '0.875rem',
-      color: '#B91C1C',  // Red 700
-      backgroundColor: '#FEF2F2',  // Red 50
-      borderRadius: '0.375rem',
-      border: '1px solid #FEE2E2'  // Red 100
+      padding: spacing[3],
+      marginBottom: spacing[4],
+      fontSize: fontSizes.sm,
+      color: colors.red[700],
+      backgroundColor: colors.red[50],
+      borderRadius: borderRadius.md,
+      border: `1px solid ${colors.red[100]}`
     }
   };
 
@@ -141,19 +142,19 @@ export function Form<TFormValues extends FieldValues>({
       width: '100%',
       display: 'flex',
       flexDirection: 'column' as const,
-      gap: '0.5rem'
+      gap: spacing[2]
     },
     button: {
       width: '100%',
-      padding: '0.5rem 1rem',
-      backgroundColor: '#4F46E5', // Indigo primary color
-      color: '#FFFFFF',
+      padding: `${spacing[2]} ${spacing[4]}`,
+      backgroundColor: colors.primary,
+      color: colors.white,
       border: 'none',
-      borderRadius: '0.375rem',
-      fontSize: '0.875rem',
-      fontWeight: 500,
+      borderRadius: borderRadius.md,
+      fontSize: fontSizes.sm,
+      fontWeight: fontWeights.medium,
       cursor: 'pointer',
-      marginTop: '0.75rem'
+      marginTop: spacing[3]
     },
     buttonDisabled: {
       opacity: 0.5,
@@ -256,8 +257,8 @@ export const FormContainer: React.FC<{ children: ReactNode }> = ({ children }) =
   const containerStyles = {
     width: '100%',
     maxWidth: '28rem',
-    margin: '1.5rem auto',
-    padding: '0 1rem'
+    margin: `${spacing[6]} auto`,
+    padding: `0 ${spacing[4]}`
   };
   
   return (

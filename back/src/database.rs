@@ -24,7 +24,7 @@ pub async fn get_connection_pool(config: DatabaseConfig) -> PgPool {
     // underway::MIGRATOR.run(&pool).await.unwrap();
 
     // TODO: handle errors
-    //sqlx::migrate!().run(&pool).await.unwrap();
+    sqlx::migrate!().run(&pool).await.unwrap();
 
     pool
 }

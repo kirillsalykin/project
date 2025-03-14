@@ -29,6 +29,6 @@ utoipa-swagger-ui = { version = "9.0.0", features = ["axum"] }
 
 anyhow = {version = "1.0.97"}
 thiserror = {version = "2.0.12"}
-secrecy = { version= "0.10.3", features = ["serde"] }
+bcrypt = {version= "0.17.0"}
 uuid = { version = "1.15.1", features = ["v7", "serde"] }
 

@@ -1,4 +1,4 @@
-use crate::api::ApiResult;
+use crate::api::{ApiResult, ValidationErrorInfo};
 use crate::app::{self};
 
 use api_response_derive::ApiResponse;
@@ -29,7 +29,7 @@ pub fn router() -> OpenApiRouter<app::State> {
   request_body = SignUpInput,
   responses(
     (status = OK, body = AuthenticatedResponse),
-    //(status = BAD_REQUEST),
+    (status = BAD_REQUEST, body = ValidationErrorInfo),
     (status = INTERNAL_SERVER_ERROR)))]
 async fn sign_up(
     State(db): State<PgPool>,
@@ -41,7 +41,7 @@ async fn sign_up(
         let user = create_user(&mut tx, input.email, input.password)
             .await
             .map_err(|e| match e {
-                UserCreationError::AlreadyExists => ApiError::ValidationError("exists".to_string()),
+                UserCreationError::AlreadyExists => ApiError::invalid("already_exists"),
                 UserCreationError::Error(e) => ApiError::InternalError(e),
             })?;
         let session_token = create_session(&mut tx, &user).await?;
@@ -64,7 +64,9 @@ async fn sign_up(
   path = "/sign-in",
   request_body = SignUpInput,
   responses(
-        (status = OK, body = AuthenticatedResponse)))]
+    (status = OK, body = AuthenticatedResponse),
+    (status = BAD_REQUEST, body = ValidationErrorInfo),
+    (status = INTERNAL_SERVER_ERROR)))]
 async fn sign_in(
     State(db): State<PgPool>,
     Json(input): Json<SignUpInput>,
@@ -74,10 +76,10 @@ async fn sign_in(
     let result = async {
         let user = get_user_by_email(&mut tx, &input.email)
             .await?
-            .ok_or_else(|| ApiError::ValidationError("invalid_credential".to_string()))?;
+            .ok_or_else(|| ApiError::invalid("invalid_credentials"))?;
 
         if !verify(input.password.as_ref(), user.hashed_password.as_ref())? {
-            return Err(ApiError::ValidationError("invalid_credential".to_string()));
+            return Err(ApiError::invalid("invalid_credentials"));
         }
 
         let session_token = create_session(&mut tx, &user).await?;

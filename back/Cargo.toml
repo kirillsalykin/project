@@ -1,7 +1,7 @@
 [package]
 name = "project"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [lib]
 path = "src/lib.rs"
@@ -13,22 +13,21 @@ name = "project"
 [dependencies]
 tokio = { version = "1.44.0", features = ["full"] }
 
-serde = { version = "1.0.209" }
+serde = { version = "1.0.209", features = ["derive"]}
 serde_json = { version = "1.0.140" }
 
 config = { version = "0.15.11", default-features = false, features = ["yaml"] }
 
 sqlx = { version = "0.8.2", features = ["runtime-tokio", "macros", "postgres", "migrate", "uuid", "chrono" ] }
 
-axum = { version = "0.8.1", features = ["json"] }
-api_response_derive = { path = "../api_response_derive" }
+axum = { version = "0.8.1", features = ["macros", "json"] }
+aide = { version = "0.14.2", features = ["axum-json", "macros", "swagger"] }
 tower-http = { version = "0.6.2", features = ["cors", "timeout"] }
-utoipa = { version = "5.3.1", features = ["uuid", "axum_extras", "openapi_extensions"] }
-utoipa-axum = "0.2.0"
-utoipa-swagger-ui = { version = "9.0.0", features = ["axum"] }
+schemars = { version = "0.8.22", features = ["uuid1"]}
+indexmap = "2.8.0"
 
 anyhow = {version = "1.0.97"}
 thiserror = {version = "2.0.12"}
 bcrypt = {version= "0.17.0"}
-uuid = { version = "1.15.1", features = ["v7", "serde"] }
+uuid = { version = "1.16.0", features = ["v7", "serde"] }
 

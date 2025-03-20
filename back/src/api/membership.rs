@@ -1,53 +1,33 @@
-use crate::api::{ApiResult, ValidationErrorInfo};
-use crate::app::{self};
-
-use api_response_derive::ApiResponse;
+use crate::api::{ApiError, ApiResult, ok};
 
 use anyhow::Result;
+use axum::{self, debug_handler};
 use axum::{extract::State, response::Json};
 use bcrypt::{hash, verify};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-use utoipa::ToSchema;
-use utoipa_axum::router::OpenApiRouter;
-use utoipa_axum::routes;
 use uuid::Uuid;
 
-use super::ApiError;
-
-pub fn router() -> OpenApiRouter<app::State> {
-    OpenApiRouter::new()
-        .routes(routes!(sign_up))
-        .routes(routes!(sign_in))
-}
-
 // API
-
-#[utoipa::path(
-  post,
-  path = "/sign-up",
-  request_body = SignUpInput,
-  responses(
-    (status = OK, body = AuthenticatedResponse),
-    (status = BAD_REQUEST, body = ValidationErrorInfo),
-    (status = INTERNAL_SERVER_ERROR)))]
-async fn sign_up(
+#[debug_handler]
+pub async fn sign_up(
     State(db): State<PgPool>,
     Json(input): Json<SignUpInput>,
-) -> ApiResult<AuthenticatedResponse> {
+) -> ApiResult<Json<AuthenticatedResponse>> {
     let mut tx = db.begin().await?;
 
     let result = async {
         let user = create_user(&mut tx, input.email, input.password)
             .await
             .map_err(|e| match e {
-                UserCreationError::AlreadyExists => ApiError::invalid("already_exists"),
+                UserCreationError::AlreadyExists => ApiError::Unauthorized, //ApiError::invalid("already_exists"),
                 UserCreationError::Error(e) => ApiError::InternalError(e),
             })?;
         let session_token = create_session(&mut tx, &user).await?;
-        Ok(AuthenticatedResponse {
+        Ok(Json(AuthenticatedResponse {
             token: session_token,
-        })
+        }))
     }
     .await;
 
@@ -59,33 +39,26 @@ async fn sign_up(
     result
 }
 
-#[utoipa::path(
-  post,
-  path = "/sign-in",
-  request_body = SignUpInput,
-  responses(
-    (status = OK, body = AuthenticatedResponse),
-    (status = BAD_REQUEST, body = ValidationErrorInfo),
-    (status = INTERNAL_SERVER_ERROR)))]
-async fn sign_in(
+pub async fn sign_in(
     State(db): State<PgPool>,
     Json(input): Json<SignUpInput>,
-) -> ApiResult<AuthenticatedResponse> {
+) -> ApiResult<Json<AuthenticatedResponse>> {
     let mut tx = db.begin().await?;
 
     let result = async {
         let user = get_user_by_email(&mut tx, &input.email)
             .await?
-            .ok_or_else(|| ApiError::invalid("invalid_credentials"))?;
+            .ok_or_else(|| ApiError::Unauthorized)?;
 
         if !verify(input.password.as_ref(), user.hashed_password.as_ref())? {
-            return Err(ApiError::invalid("invalid_credentials"));
+            return Err(ApiError::Unauthorized);
+            //return Err(ApiError::invalid("invalid_credentials"));
         }
 
         let session_token = create_session(&mut tx, &user).await?;
-        Ok(AuthenticatedResponse {
+        Ok(Json(AuthenticatedResponse {
             token: session_token,
-        })
+        }))
     }
     .await;
 
@@ -180,13 +153,13 @@ async fn create_session(
     Ok(token)
 }
 
-#[derive(Serialize, Deserialize, ToSchema)]
+#[derive(Serialize, Deserialize, JsonSchema)]
 pub struct SignUpInput {
     email: Email,
     password: PlainTextPassword,
 }
 
-#[derive(ApiResponse, Serialize, Deserialize, ToSchema)]
+#[derive(Serialize, Deserialize, JsonSchema)]
 pub struct AuthenticatedResponse {
     token: SessionToken,
 }
@@ -208,11 +181,11 @@ impl UserId {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, ToSchema, sqlx::Type, sqlx::FromRow)]
+#[derive(Debug, Serialize, Deserialize, JsonSchema, sqlx::Type, sqlx::FromRow)]
 #[sqlx(transparent)]
 pub struct Email(String);
 
-#[derive(Serialize, Deserialize, ToSchema)]
+#[derive(Serialize, Deserialize, JsonSchema)]
 pub struct PlainTextPassword(String);
 
 impl PlainTextPassword {
@@ -236,7 +209,7 @@ impl AsRef<str> for HashedPassword {
     }
 }
 
-#[derive(Serialize, Deserialize, ToSchema, sqlx::Type)]
+#[derive(Serialize, Deserialize, JsonSchema, sqlx::Type)]
 #[sqlx(transparent)]
 pub struct SessionToken(Uuid);
 

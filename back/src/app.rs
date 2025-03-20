@@ -1,18 +1,21 @@
 use crate::database;
 use crate::{api::membership, configuration::Config};
 
-use axum::{extract::FromRef, middleware};
+use aide::swagger::Swagger;
+use aide::{
+    axum::{
+        ApiRouter,
+        routing::{get, post},
+    },
+    openapi::OpenApi,
+};
+use axum::{Extension, Json, extract::FromRef, middleware};
 use sqlx::PgPool;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::{signal, task};
 use tower_http::cors::CorsLayer;
 use tower_http::timeout::TimeoutLayer;
-use utoipa::OpenApi;
-use utoipa_axum::router::OpenApiRouter;
-use utoipa_swagger_ui::SwaggerUi;
-
-use serde::{Deserialize, Serialize};
 
 #[derive(Clone)]
 pub struct State(Arc<InnerState>);
@@ -27,9 +30,6 @@ pub struct InnerState {
     db: PgPool,
 }
 
-#[derive(OpenApi)]
-struct ApiDoc;
-
 pub struct App {}
 
 impl App {
@@ -38,39 +38,51 @@ impl App {
 
         let state = State(Arc::new(InnerState { db: pool.clone() }));
 
-        let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
-            .nest("/membership", membership::router())
-            .split_for_parts();
+        let mut api = OpenApi::default();
 
-        let router = router
-            .with_state(state.clone())
-            .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", api))
+        aide::generate::infer_responses(false);
+
+        let app = ApiRouter::new()
+            .api_route("/membership/sign-up", post(membership::sign_up))
+            .api_route("/membership/sign-in", post(membership::sign_in))
             .layer((
                 CorsLayer::permissive(),
                 TimeoutLayer::new(Duration::from_secs(10)),
-            ));
+            ))
+            .with_state(state.clone())
+            // swagger
+            .route("/swagger", get(Swagger::new("/api.json").axum_handler()))
+            .route(
+                "/api.json",
+                get(async |Extension(api): Extension<Arc<OpenApi>>| Json(api)),
+            )
+            .finish_api(&mut api)
+            .layer(Extension(Arc::new(api)));
 
         let listener = tokio::net::TcpListener::bind(config.app.addr)
             .await
             .unwrap();
+
         let addr = listener.local_addr().unwrap();
         println!("listening on {}", addr);
 
-        tokio::join!(
-            //task::spawn({
-            //    let pool = pool.clone();
-            //    async move {
-            //        shutdown_signal().await;
-            //        underway::queue::graceful_shutdown(&pool).await.unwrap();
-            //    }
-            //}),
-            //task::spawn(async move { job.run().await }),
-            task::spawn(async move {
-                axum::serve(listener, router)
-                    .with_graceful_shutdown(shutdown_signal())
-                    .await
-            })
-        );
+        axum::serve(listener, app)
+            .with_graceful_shutdown(shutdown_signal())
+            .await
+            .unwrap();
+
+        //tokio::join!(
+        //task::spawn({
+        //    let pool = pool.clone();
+        //    async move {
+        //        shutdown_signal().await;
+        //        underway::queue::graceful_shutdown(&pool).await.unwrap();
+        //    }
+        //}),
+        //task::spawn(async move { job.run().await }),
+        //    task::spawn(async move {
+        //    })
+        //);
     }
 }
 

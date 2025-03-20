@@ -1,48 +1,76 @@
 pub mod membership;
 
-use anyhow::Error;
-use axum::{
-    http::StatusCode,
-    response::{IntoResponse, Json, Response},
+use aide::{
+    OperationOutput,
+    generate::GenContext,
+    openapi::MediaType,
+    openapi::{Operation, Response},
 };
+use anyhow;
+use axum::response::{IntoResponse, Json};
 use bcrypt;
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use utoipa::ToSchema;
-
-// TODO: implement https://chatgpt.com/c/67d51839-67a8-8009-988b-acef44d9756a
 
 #[derive(Debug)]
 pub enum ApiError {
-    InternalError(Error),
+    InternalError(anyhow::Error),
 
     Unauthorized,
-
-    ValidationError(ValidationErrorInfo),
+    //ValidationError(ValidationErrorInfo),
 }
 
-impl ApiError {
-    pub fn invalid<S: Into<String>>(error: S) -> Self {
-        ApiError::ValidationError(ValidationErrorInfo {
-            error: Some(error.into()),
-            field_errors: None,
-        })
-    }
+impl OperationOutput for ApiError {
+    type Inner = Self;
 
-    pub fn invalid_with_fields<S: Into<String>>(msg: S, fields: HashMap<String, String>) -> Self {
-        ApiError::ValidationError(ValidationErrorInfo {
-            error: Some(msg.into()),
-            field_errors: Some(fields),
-        })
+    fn inferred_responses(
+        ctx: &mut GenContext,
+        _operation: &mut Operation,
+    ) -> Vec<(Option<u16>, Response)> {
+        vec![
+            (
+                Some(500),
+                Response {
+                    description: "Internal server error".into(),
+                    ..Default::default()
+                },
+            ),
+            (
+                Some(401),
+                Response {
+                    description: "Unauthorized".into(),
+                    ..Default::default()
+                },
+            ),
+            //(
+            //    Some(400),
+            //    aide::openapi::Response {
+            //        description: "Validation error".into(),
+            //        content: {
+            //            let mut content = indexmap::IndexMap::new();
+            //            content.insert(
+            //                "application/json".into(),
+            //                MediaType {
+            //                    schema: Some(aide::openapi::SchemaObject {
+            //                        json_schema: schemars::schema::Schema::Object(
+            //                            ctx.schema
+            //                                .subschema_for::<ValidationErrorInfo>()
+            //                                .into_object(),
+            //                        ),
+            //                        external_docs: Default::default(),
+            //                        example: Default::default(),
+            //                    }),
+            //                    ..Default::default()
+            //                },
+            //            );
+            //            content
+            //        },
+            //        ..Default::default()
+            //    },
+            //),
+        ]
     }
-}
-
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
-pub struct ValidationErrorInfo {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub error: Option<String>,
-    #[serde(rename = "fieldErrors", skip_serializing_if = "Option::is_none")]
-    pub field_errors: Option<HashMap<String, String>>,
 }
 
 impl From<anyhow::Error> for ApiError {
@@ -62,13 +90,21 @@ impl From<bcrypt::BcryptError> for ApiError {
 }
 
 impl IntoResponse for ApiError {
-    fn into_response(self) -> Response {
+    fn into_response(self) -> axum::response::Response {
         match self {
-            ApiError::InternalError(_) => (StatusCode::INTERNAL_SERVER_ERROR, "").into_response(),
-            ApiError::ValidationError(e) => (StatusCode::BAD_REQUEST, Json(e)).into_response(),
-            ApiError::Unauthorized => (StatusCode::UNAUTHORIZED, "").into_response(),
+            ApiError::InternalError(_) => {
+                (axum::http::StatusCode::INTERNAL_SERVER_ERROR).into_response()
+            }
+            //ApiError::ValidationError(e) => {
+            //    (axum::http::StatusCode::BAD_REQUEST, Json(e)).into_response()
+            //}
+            ApiError::Unauthorized => (axum::http::StatusCode::UNAUTHORIZED).into_response(),
         }
     }
 }
 
 pub type ApiResult<T> = Result<T, ApiError>;
+
+pub fn ok<T: Serialize>(value: T) -> Result<Json<T>, ApiError> {
+    Ok(Json(value))
+}

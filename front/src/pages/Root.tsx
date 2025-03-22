@@ -50,13 +50,7 @@ export default function Root() {
       {/* Main content */}
       <main className="flex-1 py-8 px-4">
         <div className="max-w-7xl mx-auto">
-          {isAuthenticated ? (
-            <Alert 
-              type="success" 
-              message={`Signed in successfully as kirill.salykin@gmail.com`}
-              className="mb-6"
-            />
-          ) : (
+          {!isAuthenticated && (
             <div className="text-center mb-8">
               <h1 className="text-2xl font-bold text-gray-900 mb-2">
                 Welcome to the Auth Demo

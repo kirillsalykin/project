@@ -2,40 +2,22 @@ import { SignUpInput, AuthenticatedResponse } from '../types/api';
 
 const API_URL = 'http://localhost:8000';
 
-/**
- * API response type
- */
-export type ApiResponseType = 'success' | 'error';
-
-/**
- * Base API response interface
- */
-export interface ApiResponse {
-  type: ApiResponseType;
-  statusCode?: number;  // HTTP status code
+export namespace Api {
+  export interface Error {
+    code: string;
+    message: string | null;
+    params: Record<string, any>;
+  }
 }
 
-/**
- * Interface for standardized API error format
- */
-export interface ApiError extends ApiResponse {
-  type: 'error';
-  error: string;                        // Primary error message
-  fieldErrors?: Record<string, string>; // Field-specific validation errors
+export interface ApiError {
+  _global?: Api.Error[];
+  [key: string]: Api.Error[] | undefined;
 }
 
-/**
- * Success response interface with data
- */
-export interface ApiSuccess<T> extends ApiResponse {
-  type: 'success';
-  data: T;
-}
-
-/**
- * Standard API result interface - can be success or error
- */
-export type ApiResult<T> = ApiSuccess<T> | ApiError;
+export type ApiResult<T> = 
+  | { type: 'success'; data: T }
+  | { type: 'error'; error: ApiError };
 
 /**
  * Simple API client for making HTTP requests
@@ -78,40 +60,59 @@ export const api = {
         const data = await response.json();
         return {
           type: 'success',
-          statusCode: response.status,
           data
         };
       }
 
-      // Error response
-      const status = response.status;
-      let error: string = 'An unknown error occurred';
-      let fieldErrors = {};
-
-      // Try to parse error response
-      if (response.headers.get('content-type')?.includes('application/json')) {
+      // Only parse JSON for validation errors (422)
+      if (response.status === 422) {
         try {
-          const errorData = await response.json();
-          error = errorData.error || error;
-          fieldErrors = errorData.fieldErrors || {};
+          const errorResponse: ApiError = await response.json();
+          return {
+            type: 'error',
+            error: errorResponse
+          };
         } catch (e) {
-          console.error('Error parsing error response:', e);
+          // If we can't parse JSON for 422, something is wrong with the API
+          console.error('Failed to parse validation error response:', e);
+          return {
+            type: 'error',
+            error: {
+              _global: [{
+                code: 'api_error',
+                message: null,
+                params: { status: response.status }
+              }]
+            }
+          };
         }
       }
 
+      // For all other errors (400, 500, etc), return simple error
       return {
         type: 'error',
-        statusCode: status,
-        error,
-        fieldErrors
+        error: {
+          _global: [{
+            code: 'api_error',
+            message: null,
+            params: { status: response.status }
+          }]
+        }
       };
+
     } catch (e) {
       // Handle network or other errors
-      const error = e instanceof Error ? e.message : 'Network error';
       return {
         type: 'error',
-        error,
-        statusCode: 0
+        error: {
+          _global: [{
+            code: 'network_error',
+            message: null,
+            params: { 
+              error: e instanceof Error ? e.message : 'Network error'
+            }
+          }]
+        }
       };
     }
   },

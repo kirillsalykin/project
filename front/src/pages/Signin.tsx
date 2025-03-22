@@ -3,6 +3,8 @@ import { AuthenticatedResponse, SignUpInput } from '../types/api';
 import { api } from '../services/api';
 import { Card, CardHeader, CardBody, CardFooter, Link } from '../components/UIComponents';
 import { Form, FormInput, useFormWithApi, FormContainer } from '../components/FormComponents';
+import { useSearchParams } from 'react-router-dom';
+import { validation } from '../utils/validation';
 
 interface SignInFormValues {
   email: string;
@@ -11,6 +13,8 @@ interface SignInFormValues {
 
 const SignIn = () => {
   const { signin } = useAuth();
+  const [searchParams] = useSearchParams();
+  const emailFromUrl = searchParams.get('email');
 
   // Handle successful signin
   const handleSignInSuccess = (data: AuthenticatedResponse) => {
@@ -20,10 +24,11 @@ const SignIn = () => {
 
   // Create form with API integration
   const { 
-    methods, 
-    isSubmitting, 
-    globalError, 
-    handleSubmit 
+    register,
+    handleSubmit,
+    formState: { errors },
+    isSubmitting,
+    globalError
   } = useFormWithApi<SignInFormValues, AuthenticatedResponse>(
     // API method to call
     (data) => api.post<AuthenticatedResponse>('/membership/sign-in', {
@@ -31,11 +36,10 @@ const SignIn = () => {
       password: data.password
     } as SignUpInput),
     // Success handler
-    handleSignInSuccess
+    handleSignInSuccess,
+    // Default values
+    emailFromUrl ? { email: emailFromUrl } : undefined
   );
-
-  // Get form functions
-  const { register, formState: { errors } } = methods;
 
   return (
     <FormContainer>
@@ -43,7 +47,6 @@ const SignIn = () => {
         <CardHeader title="Sign in to your account" />
         <CardBody>
           <Form
-            methods={methods}
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting}
             globalError={globalError}
@@ -54,24 +57,20 @@ const SignIn = () => {
               id="email"
               type="email"
               placeholder="kirill.salykin@gmail.com"
-              required
               register={register}
               error={errors.email}
-              validation={{
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: "Invalid email address"
-                }
-              }}
+              required
+              validation={validation.email}
             />
             
             <FormInput
               label="Password"
               id="password"
               type="password"
-              required
               register={register}
               error={errors.password}
+              required
+              validation={validation.password}
             />
           </Form>
         </CardBody>

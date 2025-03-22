@@ -3,6 +3,7 @@ import { AuthenticatedResponse, SignUpInput } from '../types/api';
 import { api } from '../services/api';
 import { Card, CardHeader, CardBody, CardFooter, Link } from '../components/UIComponents';
 import { Form, FormInput, useFormWithApi, FormContainer } from '../components/FormComponents';
+import { validation } from '../utils/validation';
 
 interface SignUpFormValues {
   email: string;
@@ -12,18 +13,18 @@ interface SignUpFormValues {
 const SignUp = () => {
   const { signin } = useAuth();
 
-  // Handle successful signup
+  // Success handler
   const handleSignUpSuccess = (data: AuthenticatedResponse) => {
     // TypeScript guarantees token exists per the type definition
     signin(data.token);
   };
 
-  // Create form with API integration
-  const { 
-    methods, 
-    isSubmitting, 
-    globalError, 
-    handleSubmit 
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    isSubmitting,
+    globalError
   } = useFormWithApi<SignUpFormValues, AuthenticatedResponse>(
     // API method to call
     (data) => api.post<AuthenticatedResponse>('/membership/sign-up', {
@@ -31,11 +32,21 @@ const SignUp = () => {
       password: data.password
     } as SignUpInput),
     // Success handler
-    handleSignUpSuccess
+    handleSignUpSuccess,
+    undefined,
+    (error, formData) => {
+      if (error.code === 'already_exists') {
+        return {
+          ...error,
+          action: {
+            label: 'Sign in instead',
+            to: `/sign-in?email=${encodeURIComponent(formData.email)}`
+          }
+        };
+      }
+      return error;
+    }
   );
-
-  // Get form functions
-  const { register, formState: { errors } } = methods;
 
   return (
     <FormContainer>
@@ -43,41 +54,29 @@ const SignUp = () => {
         <CardHeader title="Create a new account" />
         <CardBody>
           <Form
-            methods={methods}
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting}
             globalError={globalError}
             submitText="Create account"
           >
             <FormInput
-              label="Email address"
               id="email"
+              label="Email address"
               type="email"
               placeholder="kirill.salykin@gmail.com"
-              required
               register={register}
               error={errors.email}
-              validation={{
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: "Invalid email address"
-                }
-              }}
-            />
-            
-            <FormInput
-              label="Password"
-              id="password"
-              type="password"
               required
+              validation={validation.email}
+            />
+            <FormInput
+              id="password"
+              label="Password"
+              type="password"
               register={register}
               error={errors.password}
-              validation={{
-                minLength: {
-                  value: 6,
-                  message: "Password must be at least 6 characters"
-                }
-              }}
+              required
+              validation={validation.password}
             />
           </Form>
         </CardBody>

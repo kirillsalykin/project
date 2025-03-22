@@ -1,9 +1,10 @@
 import React, { ReactNode, useState } from 'react';
 import { UseFormRegister, FieldValues, FieldError, UseFormReturn, useForm, Path, UseFormSetError, DefaultValues } from 'react-hook-form';
 import { ZodType } from 'zod';
-import { ApiError } from '../services/api';
 import { ApiResult } from '../types/api';
-import { Alert, Spinner, Button } from './UIComponents';
+import { Alert, Spinner, Button, Link } from './UIComponents';
+import { getErrorMessages } from '../utils/errors';
+import { ErrorWithAction } from '../utils/errors';
 
 // Form input with error display
 interface FormInputProps {
@@ -82,21 +83,21 @@ export const FormError: React.FC<FormErrorProps> = ({ error }) => {
 interface FormProps<TFormValues extends FieldValues> {
   children: ReactNode;
   onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void> | void;
-  methods: UseFormReturn<TFormValues>;
   isSubmitting?: boolean;
-  globalError?: string | null;
+  globalError?: ErrorWithAction | null;
   submitText?: string;
   className?: string;
+  onError?: (error: ErrorWithAction) => ReactNode;
 }
 
 export function Form<TFormValues extends FieldValues>({
   children,
   onSubmit,
-  methods,
   isSubmitting = false,
   globalError = null,
   submitText = 'Submit',
-  className = ''
+  className = '',
+  onError
 }: FormProps<TFormValues>) {
   return (
     <form 
@@ -105,19 +106,41 @@ export function Form<TFormValues extends FieldValues>({
     >
       {children}
       
-      {globalError && <Alert type="error" message={globalError} />}
-      
       <Button
         type="submit"
         variant="primary"
         isLoading={isSubmitting}
-        className="w-full mt-4"
+        className="w-full"
       >
         {isSubmitting ? 'Processing...' : submitText}
       </Button>
+
+      {globalError && (
+        <div className="p-4 bg-red-50 border border-red-100 rounded-lg">
+          <div className="flex flex-col gap-1">
+            <p className="text-sm text-red-700">{globalError.message}</p>
+            {globalError.action && (
+              <p className="text-sm">
+                <Link to={globalError.action.to} className="text-primary font-medium hover:text-primary/80">
+                  {globalError.action.label} →
+                </Link>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </form>
   );
 }
+
+// Form container with standardized styling and improved layout
+export const FormContainer: React.FC<{ children: ReactNode }> = ({ children }) => {
+  return (
+    <div className="max-w-md mx-auto w-full">
+      {children}
+    </div>
+  );
+};
 
 // Generic interface for any object with potential field errors
 interface ErrorWithFields {
@@ -159,25 +182,17 @@ export function useApiErrorHandler<T extends FieldValues>(
   };
 }
 
-// Form container with standardized styling and improved layout
-export const FormContainer: React.FC<{ children: ReactNode }> = ({ children }) => {
-  return (
-    <div className="max-w-md mx-auto w-full">
-      {children}
-    </div>
-  );
-};
-
 // Custom hook for form handling with API integration and error management
 export function useFormWithApi<TFormValues extends FieldValues, TResponse>(
   apiMethod: (data: TFormValues) => Promise<ApiResult<TResponse>>,
   onSuccess?: (data: TResponse) => void,
-  defaultValues?: DefaultValues<TFormValues>
+  defaultValues?: DefaultValues<TFormValues>,
+  onError?: (error: ErrorWithAction, formData: TFormValues) => ErrorWithAction
 ) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [globalError, setGlobalError] = useState<string | undefined>(undefined);
+  const [globalError, setGlobalError] = useState<ErrorWithAction | undefined>(undefined);
   
-  const methods = useForm<TFormValues>({
+  const form = useForm<TFormValues>({
     mode: 'onSubmit',
     reValidateMode: 'onSubmit',
     defaultValues,
@@ -186,7 +201,7 @@ export function useFormWithApi<TFormValues extends FieldValues, TResponse>(
     shouldUnregister: false
   });
   
-  const { handleApiError, resetErrors } = useApiErrorHandler(methods);
+  const { handleApiError, resetErrors } = useApiErrorHandler(form);
   
   const onSubmit = async (data: TFormValues) => {
     setIsSubmitting(true);
@@ -196,16 +211,26 @@ export function useFormWithApi<TFormValues extends FieldValues, TResponse>(
     try {
       const result = await apiMethod(data);
       
-      // Type guard for success case
       if (result.type === 'success') {
         onSuccess?.(result.data);
       } else {
-        // Error case
-        const errorMessage = handleApiError(result);
-        setGlobalError(errorMessage);
+        const { globalError: error, fieldErrors } = getErrorMessages(result.error);
+        
+        // Set field errors
+        Object.entries(fieldErrors).forEach(([field, message]) => {
+          form.setError(field as Path<TFormValues>, { 
+            type: 'server', 
+            message 
+          });
+        });
+        
+        // Set global error if any
+        if (error) {
+          setGlobalError(onError ? onError(error, data) : error);
+        }
       }
     } catch (err) {
-      setGlobalError('An unexpected error occurred');
+      setGlobalError({ message: 'An unexpected error occurred' });
       console.error('Form submission error:', err);
     } finally {
       setIsSubmitting(false);
@@ -213,10 +238,12 @@ export function useFormWithApi<TFormValues extends FieldValues, TResponse>(
   };
   
   return {
-    methods,
+    register: form.register,
+    handleSubmit: form.handleSubmit(onSubmit),
+    formState: form.formState,
+    getValues: form.getValues,
+    setValue: form.setValue,
     isSubmitting,
-    globalError,
-    setGlobalError,
-    handleSubmit: methods.handleSubmit(onSubmit)
+    globalError
   };
 }

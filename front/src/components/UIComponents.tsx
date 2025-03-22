@@ -1,35 +1,77 @@
 import React, { InputHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { buttonStyles, formStyles, cardStyles, alertStyles } from '../styles';
+import { colors } from '../styles/base';
+
+// Spinner component for loading states
+interface SpinnerProps {
+  size?: number;
+  color?: string;
+  className?: string;
+}
+
+export const Spinner: React.FC<SpinnerProps> = ({ 
+  size = 16, 
+  color = colors.white,
+  className = ''
+}) => {
+  return (
+    <span 
+      className={`inline-block border-2 rounded-full animate-spin mr-2 align-middle ${className}`}
+      style={{
+        width: size,
+        height: size,
+        borderColor: `${color}30`,
+        borderTopColor: color
+      }}
+      role="status" 
+      aria-label="Loading"
+    >
+      <style>
+        {`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}
+      </style>
+    </span>
+  );
+};
 
 // Button Components
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary';
   isLoading?: boolean;
+  className?: string;
 }
 
 export const Button: React.FC<ButtonProps> = ({ 
   children, 
   variant = 'primary', 
   isLoading, 
-  disabled, 
-  style,
+  disabled,
+  className = '',
   ...rest 
 }) => {
-  const baseStyle = variant === 'primary' ? buttonStyles.primary : buttonStyles.secondary;
+  const baseClasses = 'px-4 py-2.5 rounded-lg text-sm font-medium inline-block transition-all duration-200';
+  const variantClasses = {
+    primary: 'bg-primary hover:bg-primary-hover text-white shadow-sm hover:shadow',
+    secondary: 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+  };
+  const disabledClasses = 'opacity-60 cursor-not-allowed hover:shadow-none';
   const loadingOrDisabled = isLoading || disabled;
   
   return (
     <button
-      style={{
-        ...baseStyle,
-        ...(loadingOrDisabled ? buttonStyles.disabled : {}),
-        ...style
-      }}
+      className={`${baseClasses} ${variantClasses[variant]} ${loadingOrDisabled ? disabledClasses : ''} ${className}`}
       disabled={loadingOrDisabled}
       {...rest}
     >
-      {isLoading ? 'Processing...' : children}
+      {isLoading ? (
+        <span className="flex items-center justify-center">
+          <Spinner size={18} className="mr-3" />
+          <span>Processing...</span>
+        </span>
+      ) : children}
     </button>
   );
 };
@@ -38,14 +80,14 @@ export const Button: React.FC<ButtonProps> = ({
 interface LinkProps {
   to: string;
   children: ReactNode;
-  style?: React.CSSProperties;
+  className?: string;
 }
 
-export const Link: React.FC<LinkProps> = ({ to, children, style, ...rest }) => {
+export const Link: React.FC<LinkProps> = ({ to, children, className = '', ...rest }) => {
   return (
     <RouterLink
       to={to}
-      style={{ ...buttonStyles.link, ...style }}
+      className={`text-sm font-medium text-gray-600 hover:text-gray-900 ${className}`}
       {...rest}
     >
       {children}
@@ -57,15 +99,19 @@ export const ButtonLink: React.FC<LinkProps & { variant?: 'primary' | 'secondary
   to, 
   children, 
   variant = 'primary',
-  style,
+  className = '',
   ...rest 
 }) => {
-  const baseStyle = variant === 'primary' ? buttonStyles.primary : buttonStyles.secondary;
+  const baseClasses = 'px-4 py-2 rounded-md text-sm font-medium inline-block';
+  const variantClasses = {
+    primary: 'bg-primary hover:bg-primary-hover text-white',
+    secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+  };
   
   return (
     <RouterLink
       to={to}
-      style={{ ...baseStyle, ...style }}
+      className={`${baseClasses} ${variantClasses[variant]} ${className}`}
       {...rest}
     >
       {children}
@@ -76,15 +122,18 @@ export const ButtonLink: React.FC<LinkProps & { variant?: 'primary' | 'secondary
 // Form Components
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
+  className?: string;
 }
 
-export const Input: React.FC<InputProps> = ({ label, id, style, ...rest }) => {
+export const Input: React.FC<InputProps> = ({ label, id, className = '', ...rest }) => {
   return (
-    <div style={formStyles.formGroup}>
-      <label htmlFor={id} style={formStyles.label}>{label}</label>
+    <div className="mb-4">
+      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
+        {label}
+      </label>
       <input
         id={id}
-        style={{ ...formStyles.input, ...style }}
+        className={`w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${className}`}
         {...rest}
       />
     </div>
@@ -94,12 +143,12 @@ export const Input: React.FC<InputProps> = ({ label, id, style, ...rest }) => {
 interface FormProps {
   onSubmit: (e: React.FormEvent) => void;
   children: ReactNode;
-  style?: React.CSSProperties;
+  className?: string;
 }
 
-export const Form: React.FC<FormProps> = ({ onSubmit, children, style }) => {
+export const Form: React.FC<FormProps> = ({ onSubmit, children, className = '' }) => {
   return (
-    <form onSubmit={onSubmit} style={{ ...formStyles.form, ...style }}>
+    <form onSubmit={onSubmit} className={`space-y-4 ${className}`}>
       {children}
     </form>
   );
@@ -108,12 +157,12 @@ export const Form: React.FC<FormProps> = ({ onSubmit, children, style }) => {
 // Card Components
 interface CardProps {
   children: ReactNode;
-  style?: React.CSSProperties;
+  className?: string;
 }
 
-export const Card: React.FC<CardProps> = ({ children, style }) => {
+export const Card: React.FC<CardProps> = ({ children, className = '' }) => {
   return (
-    <div style={{ ...cardStyles.card, ...style }}>
+    <div className={`bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden w-full ${className}`}>
       {children}
     </div>
   );
@@ -121,25 +170,25 @@ export const Card: React.FC<CardProps> = ({ children, style }) => {
 
 interface CardHeaderProps {
   title: string;
-  style?: React.CSSProperties;
+  className?: string;
 }
 
-export const CardHeader: React.FC<CardHeaderProps> = ({ title, style }) => {
+export const CardHeader: React.FC<CardHeaderProps> = ({ title, className = '' }) => {
   return (
-    <div style={{ ...cardStyles.cardHeader, ...style }}>
-      <h2 style={cardStyles.cardTitle}>{title}</h2>
+    <div className={`px-8 py-6 text-center ${className}`}>
+      <h2 className="text-2xl font-semibold text-gray-900">{title}</h2>
     </div>
   );
 };
 
 interface CardBodyProps {
   children: ReactNode;
-  style?: React.CSSProperties;
+  className?: string;
 }
 
-export const CardBody: React.FC<CardBodyProps> = ({ children, style }) => {
+export const CardBody: React.FC<CardBodyProps> = ({ children, className = '' }) => {
   return (
-    <div style={{ ...cardStyles.cardBody, ...style }}>
+    <div className={`px-8 pb-8 w-full ${className}`}>
       {children}
     </div>
   );
@@ -147,12 +196,12 @@ export const CardBody: React.FC<CardBodyProps> = ({ children, style }) => {
 
 interface CardFooterProps {
   children: ReactNode;
-  style?: React.CSSProperties;
+  className?: string;
 }
 
-export const CardFooter: React.FC<CardFooterProps> = ({ children, style }) => {
+export const CardFooter: React.FC<CardFooterProps> = ({ children, className = '' }) => {
   return (
-    <div style={{ ...cardStyles.cardFooter, ...style }}>
+    <div className={`px-8 py-6 bg-gray-50 border-t border-gray-100 text-center text-sm text-gray-600 ${className}`}>
       {children}
     </div>
   );
@@ -160,16 +209,22 @@ export const CardFooter: React.FC<CardFooterProps> = ({ children, style }) => {
 
 // Alert Components
 interface AlertProps {
-  type: 'error' | 'success' | 'info';
+  type: 'error' | 'success' | 'info' | 'warning';
   message: string;
-  style?: React.CSSProperties;
+  className?: string;
 }
 
-export const Alert: React.FC<AlertProps> = ({ type, message, style }) => {
-  const alertStyle = alertStyles[type];
+export const Alert: React.FC<AlertProps> = ({ type, message, className = '' }) => {
+  const baseClasses = 'p-3 rounded-md text-sm';
+  const typeClasses = {
+    error: 'bg-red-50 border border-red-100 text-red-700',
+    success: 'bg-green-50 border border-green-100 text-green-700',
+    info: 'bg-blue-50 border border-blue-100 text-blue-700',
+    warning: 'bg-yellow-50 border border-yellow-100 text-yellow-700'
+  };
   
   return (
-    <div style={{ ...alertStyle, ...style }}>
+    <div className={`${baseClasses} ${typeClasses[type]} ${className}`}>
       {message}
     </div>
   );

@@ -20,7 +20,7 @@ export interface ApiResponse {
  */
 export interface ApiError extends ApiResponse {
   type: 'error';
-  error?: string;                       // Primary error message
+  error: string;                        // Primary error message
   fieldErrors?: Record<string, string>; // Field-specific validation errors
 }
 
@@ -85,14 +85,14 @@ export const api = {
 
       // Error response
       const status = response.status;
-      let error: string | undefined = undefined;
+      let error: string = 'An unknown error occurred';
       let fieldErrors = {};
 
       // Try to parse error response
       if (response.headers.get('content-type')?.includes('application/json')) {
         try {
           const errorData = await response.json();
-          error = errorData.error;
+          error = errorData.error || error;
           fieldErrors = errorData.fieldErrors || {};
         } catch (e) {
           console.error('Error parsing error response:', e);
@@ -102,7 +102,7 @@ export const api = {
       return {
         type: 'error',
         statusCode: status,
-        ...(error && { error }),
+        error,
         fieldErrors
       };
     } catch (e) {

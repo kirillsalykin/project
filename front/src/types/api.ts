@@ -29,3 +29,17 @@ export interface ValidationErrorDetail {
   msg: string;
   type: string;
 }
+
+// API Result types
+export interface ApiSuccess<T> {
+  type: 'success';
+  data: T;
+}
+
+export interface ApiError {
+  type: 'error';
+  error: string;
+  fieldErrors?: Record<string, string>;
+}
+
+export type ApiResult<T> = ApiSuccess<T> | ApiError;

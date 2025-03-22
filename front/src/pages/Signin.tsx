@@ -2,7 +2,7 @@ import { useAuth } from '../components/auth';
 import { AuthenticatedResponse, SignUpInput } from '../types/api';
 import { api } from '../services/api';
 import { Card, CardHeader, CardBody, CardFooter, Link } from '../components/UIComponents';
-import { Form, FormInput, useApiForm, FormContainer } from '../components/FormComponents';
+import { Form, FormInput, useFormWithApi, FormContainer } from '../components/FormComponents';
 
 interface SignInFormValues {
   email: string;
@@ -24,7 +24,7 @@ const SignIn = () => {
     isSubmitting, 
     globalError, 
     handleSubmit 
-  } = useApiForm<SignInFormValues, AuthenticatedResponse>(
+  } = useFormWithApi<SignInFormValues, AuthenticatedResponse>(
     // API method to call
     (data) => api.post<AuthenticatedResponse>('/membership/sign-in', {
       email: data.email,

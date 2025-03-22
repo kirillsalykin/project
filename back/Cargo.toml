@@ -22,6 +22,8 @@ sqlx = { version = "0.8.2", features = ["runtime-tokio", "macros", "postgres", "
 
 axum = { version = "0.8.1", features = ["macros", "json"] }
 aide = { version = "0.14.2", features = ["axum-json", "macros", "swagger"] }
+validator = { version = "0.20.0", default-features = false, features = ["derive"] }
+axum-valid = { version = "0.23.0", default-features = false, features = ["validator", "json", "aide", "into_json", "422"] }
 tower-http = { version = "0.6.2", features = ["cors", "timeout"] }
 schemars = { version = "0.8.22", features = ["uuid1"]}
 indexmap = "2.8.0"
@@ -30,4 +32,3 @@ anyhow = {version = "1.0.97"}
 thiserror = {version = "2.0.12"}
 bcrypt = {version= "0.17.0"}
 uuid = { version = "1.16.0", features = ["v7", "serde"] }
-

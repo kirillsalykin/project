@@ -1,8 +1,8 @@
-use crate::api::{ApiError, ApiResult, ok};
+use crate::api::{ApiError, ApiResult};
 
 use anyhow::Result;
-use axum::{self, debug_handler};
 use axum::{extract::State, response::Json};
+use axum_valid::Valid;
 use bcrypt::{hash, verify};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -10,10 +10,9 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 // API
-#[debug_handler]
 pub async fn sign_up(
     State(db): State<PgPool>,
-    Json(input): Json<SignUpInput>,
+    Valid(Json(input)): Valid<Json<SignUpInput>>,
 ) -> ApiResult<Json<AuthenticatedResponse>> {
     let mut tx = db.begin().await?;
 
@@ -41,7 +40,7 @@ pub async fn sign_up(
 
 pub async fn sign_in(
     State(db): State<PgPool>,
-    Json(input): Json<SignUpInput>,
+    Valid(Json(input)): Valid<Json<SignUpInput>>,
 ) -> ApiResult<Json<AuthenticatedResponse>> {
     let mut tx = db.begin().await?;
 
@@ -153,9 +152,14 @@ async fn create_session(
     Ok(token)
 }
 
-#[derive(Serialize, Deserialize, JsonSchema)]
+use validator::{Validate, ValidateEmail, ValidateLength};
+
+#[derive(Serialize, Deserialize, JsonSchema, Validate)]
 pub struct SignUpInput {
+    #[validate(email)]
     email: Email,
+
+    #[validate(length(min = 1))]
     password: PlainTextPassword,
 }
 
@@ -185,6 +189,14 @@ impl UserId {
 #[sqlx(transparent)]
 pub struct Email(String);
 
+use std::borrow::Cow;
+
+impl ValidateEmail for Email {
+    fn as_email_string(&self) -> Option<Cow<'_, str>> {
+        Some(Cow::from(&self.0))
+    }
+}
+
 #[derive(Serialize, Deserialize, JsonSchema)]
 pub struct PlainTextPassword(String);
 
@@ -196,6 +208,12 @@ impl PlainTextPassword {
 impl AsRef<str> for PlainTextPassword {
     fn as_ref(&self) -> &str {
         &self.0
+    }
+}
+
+impl ValidateLength<u64> for PlainTextPassword {
+    fn length(&self) -> Option<u64> {
+        Some(self.0.len() as u64)
     }
 }
 

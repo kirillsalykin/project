@@ -40,8 +40,6 @@ impl App {
 
         let mut api = OpenApi::default();
 
-        aide::generate::infer_responses(false);
-
         let app = ApiRouter::new()
             .api_route("/membership/sign-up", post(membership::sign_up))
             .api_route("/membership/sign-in", post(membership::sign_in))
@@ -49,8 +47,12 @@ impl App {
                 CorsLayer::permissive(),
                 TimeoutLayer::new(Duration::from_secs(10)),
             ))
-            .with_state(state.clone())
-            // swagger
+            .with_state(state.clone());
+
+        aide::generate::infer_responses(false);
+
+        // swagger
+        let app = app
             .route("/swagger", get(Swagger::new("/api.json").axum_handler()))
             .route(
                 "/api.json",

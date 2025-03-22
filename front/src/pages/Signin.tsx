@@ -1,9 +1,9 @@
-import { useAuth } from '../components/auth';
+import { useAuth } from '../components/Auth';
 import { AuthenticatedResponse, SignUpInput } from '../types/api';
 import { api } from '../services/api';
 import { Card, CardHeader, CardBody, CardFooter, Link } from '../components/UIComponents';
 import { Form, FormInput, useFormWithApi, FormContainer } from '../components/FormComponents';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { validation } from '../utils/validation';
 
 interface SignInFormValues {
@@ -14,12 +14,14 @@ interface SignInFormValues {
 const SignIn = () => {
   const { signin } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const emailFromUrl = searchParams.get('email');
 
   // Handle successful signin
   const handleSignInSuccess = (data: AuthenticatedResponse) => {
     // TypeScript guarantees token exists per the type definition
     signin(data.token);
+    navigate('/');
   };
 
   // Create form with API integration

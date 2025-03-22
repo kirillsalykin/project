@@ -7,6 +7,7 @@ use bcrypt::{hash, verify};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
+use std::borrow::Cow;
 use uuid::Uuid;
 
 // API
@@ -20,7 +21,7 @@ pub async fn sign_up(
         let user = create_user(&mut tx, input.email, input.password)
             .await
             .map_err(|e| match e {
-                UserCreationError::AlreadyExists => ApiError::Unauthorized, //ApiError::invalid("already_exists"),
+                UserCreationError::AlreadyExists => ApiError::invalid("already_exists"),
                 UserCreationError::Error(e) => ApiError::InternalError(e),
             })?;
         let session_token = create_session(&mut tx, &user).await?;
@@ -47,11 +48,10 @@ pub async fn sign_in(
     let result = async {
         let user = get_user_by_email(&mut tx, &input.email)
             .await?
-            .ok_or_else(|| ApiError::Unauthorized)?;
+            .ok_or_else(|| ApiError::invalid("invalid_credentials"))?;
 
         if !verify(input.password.as_ref(), user.hashed_password.as_ref())? {
-            return Err(ApiError::Unauthorized);
-            //return Err(ApiError::invalid("invalid_credentials"));
+            return Err(ApiError::invalid("invalid_credentials"));
         }
 
         let session_token = create_session(&mut tx, &user).await?;
@@ -188,8 +188,6 @@ impl UserId {
 #[derive(Debug, Serialize, Deserialize, JsonSchema, sqlx::Type, sqlx::FromRow)]
 #[sqlx(transparent)]
 pub struct Email(String);
-
-use std::borrow::Cow;
 
 impl ValidateEmail for Email {
     fn as_email_string(&self) -> Option<Cow<'_, str>> {

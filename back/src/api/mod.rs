@@ -4,16 +4,14 @@ use aide::{
     OperationOutput,
     generate::GenContext,
     openapi::{MediaType, Operation, Response},
-    operation,
 };
 use anyhow;
 use axum::response::{IntoResponse, Json};
 use bcrypt;
 use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::borrow::Cow;
-use std::collections::{BTreeMap, HashMap, hash_map::Entry::Vacant};
+use std::collections::{BTreeMap, HashMap};
 use validator::{ValidationError, ValidationErrors};
 
 #[derive(JsonSchema)]
@@ -42,20 +40,18 @@ pub enum ApiError {
     InternalError(anyhow::Error),
 }
 
-//pub fn global_validation_error(code: &str, message: Option<&str>) -> ValidationErrors {
-//    let mut errors = ValidationErrors::new();
-//
-//    let mut error = ValidationError::new(code);
-//
-//    if let Some(msg) = message {
-//        error.message = Some(msg.into());
-//    }
-//
-//    // Insert under the "_global" key
-//    errors.add("_global", error);
-//
-//    errors
-//}
+impl ApiError {
+    pub fn invalid(code: &'static str) -> ApiError {
+        let mut errors = ValidationErrors::new();
+
+        let error = ValidationError::new(code);
+
+        errors.add("_global", error);
+
+        ApiError::ValidationError(errors)
+    }
+}
+
 pub type ApiResult<T> = Result<T, ApiError>;
 
 impl OperationOutput for ApiError {
@@ -136,49 +132,13 @@ impl From<bcrypt::BcryptError> for ApiError {
 impl IntoResponse for ApiError {
     fn into_response(self) -> axum::response::Response {
         match self {
+            ApiError::ValidationError(e) => {
+                (axum::http::StatusCode::UNPROCESSABLE_ENTITY, Json(e)).into_response()
+            }
             ApiError::InternalError(_) => {
                 (axum::http::StatusCode::INTERNAL_SERVER_ERROR).into_response()
-            }
-            ApiError::ValidationError(e) => {
-                (axum::http::StatusCode::BAD_REQUEST, Json(e)).into_response()
             }
             ApiError::Unauthorized => (axum::http::StatusCode::UNAUTHORIZED).into_response(),
         }
     }
 }
-
-pub fn ok<T: Serialize>(value: T) -> Result<Json<T>, ApiError> {
-    Ok(Json(value))
-}
-
-////////
-//use axum::extract::rejection::*;
-//use axum::extract::{FromRequest, Request};
-//use serde::de::DeserializeOwned;
-//use validator::Validate;
-//
-//pub struct Valid<T>(pub T);
-//
-//impl<T, S> FromRequest<S> for Valid<T>
-//where
-//    T: DeserializeOwned,
-//    S: Send + Sync,
-//{
-//    type Rejection = JsonRejection;
-//
-//    async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
-//        let Json(inner) = Json::<T>::from_request(req, state).await?;
-//        Ok(Valid(inner))
-//    }
-//}
-//
-//use aide::OperationInput;
-//
-//impl<T> OperationInput for Valid<T>
-//where
-//    T: OperationInput + JsonSchema,
-//{
-//    fn operation_input(ctx: &mut aide::generate::GenContext, operation: &mut Operation) {
-//        <T as OperationInput>::operation_input(ctx, operation);
-//    }
-//}

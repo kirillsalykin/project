@@ -1,5 +1,4 @@
-use crate::database;
-use crate::{api::membership, configuration::Config};
+use crate::{api::auth, api::membership, configuration::Config, database};
 
 use aide::swagger::Swagger;
 use aide::{
@@ -40,26 +39,35 @@ impl App {
 
         let mut api = OpenApi::default();
 
-        let app = ApiRouter::new()
+        let public = ApiRouter::new()
             .api_route("/membership/sign-up", post(membership::sign_up))
             .api_route("/membership/sign-in", post(membership::sign_in))
-            .layer((
-                CorsLayer::permissive(),
-                TimeoutLayer::new(Duration::from_secs(10)),
+            .with_state(state.clone());
+
+        let private = ApiRouter::new()
+            .api_route("/membership/me", post(membership::me))
+            .layer(middleware::from_fn_with_state(
+                state.clone(),
+                auth::authorization,
             ))
             .with_state(state.clone());
 
         aide::generate::infer_responses(false);
 
-        // swagger
-        let app = app
+        let app = ApiRouter::new()
+            .merge(public)
+            .merge(private)
             .route("/swagger", get(Swagger::new("/api.json").axum_handler()))
             .route(
                 "/api.json",
                 get(async |Extension(api): Extension<Arc<OpenApi>>| Json(api)),
             )
             .finish_api(&mut api)
-            .layer(Extension(Arc::new(api)));
+            .layer((
+                Extension(Arc::new(api)),
+                CorsLayer::permissive(),
+                TimeoutLayer::new(Duration::from_secs(10)),
+            ));
 
         let listener = tokio::net::TcpListener::bind(config.app.addr)
             .await

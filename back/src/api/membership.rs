@@ -1,20 +1,22 @@
 use crate::api::{ApiError, ApiResult};
 
 use anyhow::Result;
-use axum::{extract::State, response::Json};
+use axum::{Extension, extract::State, response::Json};
 use axum_valid::Valid;
 use bcrypt::{hash, verify};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use std::borrow::Cow;
+use std::convert::TryFrom;
 use uuid::Uuid;
+use validator::{Validate, ValidateEmail, ValidateLength};
 
 // API
 pub async fn sign_up(
     State(db): State<PgPool>,
     Valid(Json(input)): Valid<Json<SignUpInput>>,
-) -> ApiResult<Json<AuthenticatedResponse>> {
+) -> ApiResult<Json<AuthenticatedOutput>> {
     let mut tx = db.begin().await?;
 
     let result = async {
@@ -25,7 +27,7 @@ pub async fn sign_up(
                 UserCreationError::Error(e) => ApiError::InternalError(e),
             })?;
         let session_token = create_session(&mut tx, &user).await?;
-        Ok(Json(AuthenticatedResponse {
+        Ok(Json(AuthenticatedOutput {
             token: session_token,
         }))
     }
@@ -42,7 +44,7 @@ pub async fn sign_up(
 pub async fn sign_in(
     State(db): State<PgPool>,
     Valid(Json(input)): Valid<Json<SignUpInput>>,
-) -> ApiResult<Json<AuthenticatedResponse>> {
+) -> ApiResult<Json<AuthenticatedOutput>> {
     let mut tx = db.begin().await?;
 
     let result = async {
@@ -55,7 +57,7 @@ pub async fn sign_in(
         }
 
         let session_token = create_session(&mut tx, &user).await?;
-        Ok(Json(AuthenticatedResponse {
+        Ok(Json(AuthenticatedOutput {
             token: session_token,
         }))
     }
@@ -67,6 +69,10 @@ pub async fn sign_in(
     }
 
     result
+}
+
+pub async fn me(Extension(user): Extension<User>) -> ApiResult<Json<MeOutput>> {
+    Ok(Json(user.into()))
 }
 
 // ---
@@ -152,8 +158,6 @@ async fn create_session(
     Ok(token)
 }
 
-use validator::{Validate, ValidateEmail, ValidateLength};
-
 #[derive(Serialize, Deserialize, JsonSchema, Validate)]
 pub struct SignUpInput {
     #[validate(email)]
@@ -164,18 +168,33 @@ pub struct SignUpInput {
 }
 
 #[derive(Serialize, Deserialize, JsonSchema)]
-pub struct AuthenticatedResponse {
+pub struct AuthenticatedOutput {
     token: SessionToken,
 }
 
-#[derive(Debug, sqlx::FromRow)]
-struct User {
+#[derive(Serialize, JsonSchema)]
+pub struct MeOutput {
+    pub id: UserId,
+    pub email: Email,
+}
+
+impl From<User> for MeOutput {
+    fn from(value: User) -> Self {
+        Self {
+            id: value.id,
+            email: value.email,
+        }
+    }
+}
+
+#[derive(Debug, Clone, sqlx::FromRow)]
+pub struct User {
     pub id: UserId,
     pub email: Email,
     pub hashed_password: HashedPassword,
 }
 
-#[derive(Debug, sqlx::Type, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, JsonSchema, sqlx::Type, sqlx::FromRow)]
 #[sqlx(transparent)]
 struct UserId(Uuid);
 
@@ -185,7 +204,7 @@ impl UserId {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, JsonSchema, sqlx::Type, sqlx::FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, sqlx::Type, sqlx::FromRow)]
 #[sqlx(transparent)]
 pub struct Email(String);
 
@@ -215,7 +234,7 @@ impl ValidateLength<u64> for PlainTextPassword {
     }
 }
 
-#[derive(Debug, sqlx::Type, sqlx::FromRow)]
+#[derive(Debug, Clone, sqlx::Type, sqlx::FromRow)]
 #[sqlx(transparent)]
 struct HashedPassword(String);
 
@@ -232,6 +251,14 @@ pub struct SessionToken(Uuid);
 impl SessionToken {
     fn new() -> Self {
         Self(Uuid::now_v7())
+    }
+}
+
+impl TryFrom<&str> for SessionToken {
+    type Error = uuid::Error;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Ok(Self(Uuid::try_parse(value)?))
     }
 }
 

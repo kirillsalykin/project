@@ -21,12 +21,9 @@ config = { version = "0.15.11", default-features = false, features = ["yaml"] }
 sqlx = { version = "0.8.2", features = ["runtime-tokio", "macros", "postgres", "migrate", "uuid", "chrono" ] }
 
 axum = { version = "0.8.1", features = ["macros", "json"] }
-aide = { version = "0.14.2", features = ["axum-json", "macros", "swagger"] }
-validator = { version = "0.20.0", default-features = false, features = ["derive"] }
-axum-valid = { version = "0.23.0", default-features = false, features = ["validator", "json", "aide", "into_json", "422"] }
+distilled = { git = "https://github.com/kirillsalykin/distilled", rev = "a35b37c", features = ["derive"] }
+validator = { version = "0.20", default-features = false}
 tower-http = { version = "0.6.2", features = ["cors", "timeout"] }
-schemars = { version = "0.8.22", features = ["uuid1"]}
-indexmap = "2.8.0"
 
 anyhow = {version = "1.0.97"}
 thiserror = {version = "2.0.12"}

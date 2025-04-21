@@ -1,14 +1,11 @@
-use crate::{api::auth, api::membership, configuration::Config, database};
-
-use aide::swagger::Swagger;
-use aide::{
-    axum::{
-        ApiRouter,
-        routing::{get, post},
-    },
-    openapi::OpenApi,
+use crate::{
+    api::membership,
+    api::{Api, auth},
+    configuration::Config,
+    database,
 };
-use axum::{Extension, Json, extract::FromRef, middleware};
+
+use axum::{Router, extract::FromRef, handler::Handler, middleware};
 use sqlx::PgPool;
 use std::sync::Arc;
 use std::time::Duration;
@@ -37,34 +34,29 @@ impl App {
 
         let state = State(Arc::new(InnerState { db: pool.clone() }));
 
-        let mut api = OpenApi::default();
-
-        let public = ApiRouter::new()
-            .api_route("/membership/sign-up", post(membership::sign_up))
-            .api_route("/membership/sign-in", post(membership::sign_in))
+        let public = Api::new()
+            .procedure("membership/sign-up", membership::sign_up)
+            // .procedure("membership/sign-in", membership::sign_in)
+            .build()
             .with_state(state.clone());
 
-        let private = ApiRouter::new()
-            .api_route("/membership/me", post(membership::me))
-            .layer(middleware::from_fn_with_state(
-                state.clone(),
-                auth::authorization,
-            ))
-            .with_state(state.clone());
+        // let public = Router::new()
+        //     .api_route("/membership/sign-up", post(membership::sign_up))
+        //     .api_route("/membership/sign-in", post(membership::sign_in))
+        //     .with_state(state.clone());
+        //
+        // let private = Router::new()
+        //     .api_route("/membership/me", post(membership::me))
+        //     .layer(middleware::from_fn_with_state(
+        //         state.clone(),
+        //         auth::authorization,
+        //     ))
+        //     .with_state(state.clone());
 
-        aide::generate::infer_responses(false);
-
-        let app = ApiRouter::new()
+        let app = Router::new()
             .merge(public)
-            .merge(private)
-            .route("/swagger", get(Swagger::new("/api.json").axum_handler()))
-            .route(
-                "/api.json",
-                get(async |Extension(api): Extension<Arc<OpenApi>>| Json(api)),
-            )
-            .finish_api(&mut api)
+            // .merge(private)
             .layer((
-                Extension(Arc::new(api)),
                 CorsLayer::permissive(),
                 TimeoutLayer::new(Duration::from_secs(10)),
             ));

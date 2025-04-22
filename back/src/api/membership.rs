@@ -7,7 +7,6 @@ use distilled::{Distilled, Error};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use std::convert::TryFrom;
-use std::sync::Arc;
 use uuid::Uuid;
 
 // API
@@ -23,7 +22,7 @@ pub async fn sign_up(
             .await
             .map_err(|e| match e {
                 UserCreationError::AlreadyExists => ApiError::invalid("already_exists"),
-                UserCreationError::Error(e) => ApiError::InternalError(Arc::new(e)),
+                UserCreationError::Error(e) => ApiError::InternalError(e),
             })?;
         let session_token = create_session(&mut tx, &user).await?;
         Ok(AuthenticatedOutput {
@@ -157,14 +156,13 @@ async fn create_session(
     Ok(token)
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, Distilled)]
+#[derive(Debug, Distilled)]
 pub struct SignUpInput {
     email: Email,
-
     password: PlainTextPassword,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize)]
 pub struct AuthenticatedOutput {
     token: SessionToken,
 }
@@ -184,7 +182,7 @@ impl From<User> for MeOutput {
     }
 }
 
-#[derive(Debug, Clone, sqlx::FromRow)]
+#[derive(Clone, Debug, sqlx::FromRow)]
 pub struct User {
     pub id: UserId,
     pub email: Email,
@@ -201,11 +199,11 @@ impl UserId {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Distilled, sqlx::Type, sqlx::FromRow)]
+#[derive(Clone, Debug, Serialize, Distilled, sqlx::Type, sqlx::FromRow)]
 #[sqlx(transparent)]
 pub struct Email(String);
 
-#[derive(Clone, Debug, Serialize, Deserialize, Distilled)]
+#[derive(Debug, Distilled)]
 pub struct PlainTextPassword(String);
 
 impl PlainTextPassword {
@@ -219,7 +217,7 @@ impl AsRef<str> for PlainTextPassword {
     }
 }
 
-#[derive(Debug, Clone, sqlx::Type, sqlx::FromRow)]
+#[derive(Clone, Debug, sqlx::Type, sqlx::FromRow)]
 #[sqlx(transparent)]
 struct HashedPassword(String);
 
@@ -229,7 +227,7 @@ impl AsRef<str> for HashedPassword {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize, sqlx::Type)]
+#[derive(Clone, Serialize, sqlx::Type)]
 #[sqlx(transparent)]
 pub struct SessionToken(Uuid);
 

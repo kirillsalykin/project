@@ -15,15 +15,24 @@ use bcrypt;
 use distilled::{Distilled, Error};
 use serde::Serialize;
 use serde_json::Value;
-use std::sync::Arc;
 use std::{fmt::Debug, marker::PhantomData, pin::Pin};
 
-#[derive(Clone)]
 pub struct Procedure<F, Extractors, Input, Output, Error> {
     f: F,
     _marker: PhantomData<(Extractors, Input, Output, Error)>,
 }
 
+impl<F, Extractors, Input, Output, Error> Clone for Procedure<F, Extractors, Input, Output, Error>
+where
+    F: Clone,
+{
+    fn clone(&self) -> Self {
+        Procedure {
+            f: self.f.clone(),
+            _marker: PhantomData,
+        }
+    }
+}
 pub trait IntoProcedure<Extractors, Input, Output, Error> {
     type Procedure;
     fn into_procedure(self) -> Self::Procedure;
@@ -36,9 +45,9 @@ macro_rules! impl_procedure {
         where
             F: FnOnce( $($ty,)* Input ) -> Fut + Clone + Send + Sync + 'static,
             Fut: Future<Output = Result<Output, Error>> + Send + 'static,
-            Input: Distilled + Clone + Send + Sync + 'static,
-            Output: Serialize + Clone + Send + Sync + 'static,
-            Error: Clone + Send + Sync + 'static,
+            Input: Distilled + Send + Sync + 'static,
+            Output: Serialize + Send + Sync + 'static,
+            Error: IntoResponse + Send + Sync + 'static,
         {
             type Procedure = Procedure<F, ( $( $ty, )* ), Input, Output, Error>;
 
@@ -57,9 +66,9 @@ macro_rules! impl_procedure {
             Fut: Future<Output = Result<Output, Error>> + Send,
             S: Send + Sync + 'static,
             $( $ty: FromRequestParts<S> + Clone + Send + Sync + 'static, )*
-            Input: Distilled + Clone + Send + Sync + 'static,
-            Output: Serialize + Clone + Send + Sync + 'static,
-            Error: Clone + Send + Sync + 'static,
+            Input: Distilled + Send + Sync + 'static,
+            Output: Serialize + Send + Sync + 'static,
+            Error: IntoResponse + Send + Sync + 'static,
         {
             type Future = Pin<Box<dyn Future<Output = Response> + Send>>;
 
@@ -90,7 +99,7 @@ macro_rules! impl_procedure {
 
                     match (self.f)($($ty,)* input).await {
                       Ok(output) => Json::<Output>(output).into_response(),
-                      Err(_) => "error".into_response()
+                      Err(e) => e.into_response()
                     }
                 })
             }
@@ -126,7 +135,7 @@ where
         F::Procedure: Handler<T, S>,
         Input: Distilled,
         Output: Serialize,
-        Error: Clone,
+        Error: IntoResponse,
     {
         self.router = self
             .router
@@ -139,29 +148,28 @@ where
     }
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Serialize)]
 #[serde(tag = "type", content = "data")]
 pub enum ValidationError {
     #[serde(rename = "fields")]
-    Fields(validator::ValidationErrors),
+    Fields(distilled::Error),
 
     #[serde(rename = "global")]
-    Global(validator::ValidationError),
+    Global(distilled::Error),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum ApiError {
     UnprocessableEntity(ValidationError),
 
     Unauthorized,
 
-    InternalError(Arc<anyhow::Error>),
+    InternalError(anyhow::Error),
 }
 
 impl ApiError {
     pub fn invalid(code: &'static str) -> ApiError {
-        let error = validator::ValidationError::new(code);
-
+        let error = distilled::Error::entry(code);
         ApiError::UnprocessableEntity(ValidationError::Global(error))
     }
 }
@@ -170,18 +178,17 @@ pub type ApiResult<T> = Result<T, ApiError>;
 
 impl From<anyhow::Error> for ApiError {
     fn from(err: anyhow::Error) -> Self {
-        println!("HERE");
-        ApiError::InternalError(Arc::new(err))
+        ApiError::InternalError(err)
     }
 }
 impl From<sqlx::Error> for ApiError {
     fn from(err: sqlx::Error) -> Self {
-        ApiError::InternalError(Arc::new(err.into()))
+        ApiError::InternalError(err.into())
     }
 }
 impl From<bcrypt::BcryptError> for ApiError {
     fn from(err: bcrypt::BcryptError) -> Self {
-        ApiError::InternalError(Arc::new(err.into()))
+        ApiError::InternalError(err.into())
     }
 }
 

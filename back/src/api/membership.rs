@@ -17,12 +17,7 @@ pub async fn sign_up(
     let mut tx = db.begin().await?;
 
     let result = async {
-        let user = create_user(&mut tx, input.email, input.password)
-            .await
-            .map_err(|e| match e {
-                UserCreationError::AlreadyExists => ApiError::invalid("already_exists"),
-                UserCreationError::Error(e) => ApiError::InternalError(e),
-            })?;
+        let user = create_user(&mut tx, input.email, input.password).await?;
         let session_token = create_session(&mut tx, &user).await?;
         Ok(AuthenticatedOutput {
             token: session_token,
@@ -124,6 +119,15 @@ impl From<sqlx::Error> for UserCreationError {
 impl From<anyhow::Error> for UserCreationError {
     fn from(err: anyhow::Error) -> Self {
         UserCreationError::Error(err)
+    }
+}
+
+impl From<UserCreationError> for ApiError {
+    fn from(err: UserCreationError) -> Self {
+        match err {
+            UserCreationError::AlreadyExists => ApiError::invalid("already_exists"),
+            UserCreationError::Error(e) => ApiError::InternalError(e),
+        }
     }
 }
 

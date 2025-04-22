@@ -1,10 +1,10 @@
 use crate::api::{ApiError, ApiResult};
 
 use anyhow::Result;
-use axum::{Extension, extract::State, response::Json};
+use axum::{Extension, extract::State};
 use bcrypt::{hash, verify};
 use distilled::{Distilled, Error};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use sqlx::PgPool;
 use std::convert::TryFrom;
 use uuid::Uuid;
@@ -14,7 +14,6 @@ pub async fn sign_up(
     State(db): State<PgPool>,
     input: SignUpInput,
 ) -> ApiResult<AuthenticatedOutput> {
-    println!("INPUT: {:?}", input);
     let mut tx = db.begin().await?;
 
     let result = async {
@@ -69,8 +68,8 @@ pub async fn sign_in(
     result
 }
 
-pub async fn me(Extension(user): Extension<User>) -> ApiResult<Json<MeOutput>> {
-    Ok(Json(user.into()))
+pub async fn me(Extension(user): Extension<User>, _input: ()) -> ApiResult<MeOutput> {
+    Ok(user.into())
 }
 
 // ---
@@ -115,6 +114,7 @@ pub enum UserCreationError {
     Error(anyhow::Error),
 }
 
+// TODO: map to ApiError?
 impl From<sqlx::Error> for UserCreationError {
     fn from(err: sqlx::Error) -> Self {
         UserCreationError::Error(err.into())
@@ -191,7 +191,7 @@ pub struct User {
 
 #[derive(Debug, Clone, Serialize, sqlx::Type, sqlx::FromRow)]
 #[sqlx(transparent)]
-struct UserId(Uuid);
+pub struct UserId(Uuid);
 
 impl UserId {
     fn new() -> Self {
@@ -219,7 +219,7 @@ impl AsRef<str> for PlainTextPassword {
 
 #[derive(Clone, Debug, sqlx::Type, sqlx::FromRow)]
 #[sqlx(transparent)]
-struct HashedPassword(String);
+pub struct HashedPassword(String);
 
 impl AsRef<str> for HashedPassword {
     fn as_ref(&self) -> &str {

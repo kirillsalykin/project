@@ -5,11 +5,12 @@ use crate::{
     database,
 };
 
-use axum::{Router, extract::FromRef, handler::Handler, middleware};
+use axum::{Router, extract::FromRef, middleware};
 use sqlx::PgPool;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::{signal, task};
+use tokio::signal;
+// use tokio::{signal, task};
 use tower_http::cors::CorsLayer;
 use tower_http::timeout::TimeoutLayer;
 
@@ -36,30 +37,23 @@ impl App {
 
         let public = Api::new()
             .procedure("membership/sign-up", membership::sign_up)
-            // .procedure("membership/sign-in", membership::sign_in)
+            .procedure("membership/sign-in", membership::sign_in)
             .build()
             .with_state(state.clone());
 
-        // let public = Router::new()
-        //     .api_route("/membership/sign-up", post(membership::sign_up))
-        //     .api_route("/membership/sign-in", post(membership::sign_in))
-        //     .with_state(state.clone());
-        //
-        // let private = Router::new()
-        //     .api_route("/membership/me", post(membership::me))
-        //     .layer(middleware::from_fn_with_state(
-        //         state.clone(),
-        //         auth::authorization,
-        //     ))
-        //     .with_state(state.clone());
+        let private = Api::new()
+            .procedure("/membership/me", membership::me)
+            .build()
+            .layer(middleware::from_fn_with_state(
+                state.clone(),
+                auth::authorization,
+            ))
+            .with_state(state.clone());
 
-        let app = Router::new()
-            .merge(public)
-            // .merge(private)
-            .layer((
-                CorsLayer::permissive(),
-                TimeoutLayer::new(Duration::from_secs(10)),
-            ));
+        let app = Router::new().merge(public).merge(private).layer((
+            CorsLayer::permissive(),
+            TimeoutLayer::new(Duration::from_secs(10)),
+        ));
 
         let listener = tokio::net::TcpListener::bind(config.app.addr)
             .await

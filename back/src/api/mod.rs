@@ -12,7 +12,7 @@ use axum::{
     routing::post,
 };
 use bcrypt;
-use distilled::{Distilled, Error};
+use distilled::Distilled;
 use serde::Serialize;
 use serde_json::Value;
 use std::{fmt::Debug, marker::PhantomData, pin::Pin};

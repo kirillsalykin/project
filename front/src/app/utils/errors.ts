@@ -1,5 +1,6 @@
 import { messages } from './validation';
 import { ApiError } from '../services/api';
+import { Api } from '../services/api';
 
 export interface ValidationError {
   code: 'validation_error';
@@ -31,9 +32,9 @@ const HTTP_ERROR_MESSAGES: Record<string, string> = {
   network_error: messages.auth.networkError
 };
 
-function formatErrorMessage(error: { code: string; message: string | null; params?: Record<string, any> }): string {
-  // Use the original error message if it exists
-  if (error.message) {
+function formatErrorMessage(error: Api.Error): string {
+  // Use the original error message if it exists and is not null
+  if (error.message !== null) {
     return error.message;
   }
   
@@ -47,13 +48,13 @@ function formatErrorMessage(error: { code: string; message: string | null; param
 export function getErrorMessages(error: ApiError): { globalError?: string; fieldErrors?: Record<string, string> } {
   const { _global, ...fieldErrors } = error;
   
-  if (_global) {
+  if (_global && _global.length > 0) {
     return { globalError: formatErrorMessage(_global[0]) };
   }
 
   const formattedErrors: Record<string, string> = {};
   Object.entries(fieldErrors).forEach(([field, fieldError]) => {
-    if (fieldError) {
+    if (fieldError && fieldError.length > 0) {
       formattedErrors[field] = formatErrorMessage(fieldError[0]);
     }
   });

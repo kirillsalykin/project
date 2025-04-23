@@ -15,4 +15,4 @@ export interface AuthenticatedResponse {
   };
 }
 
-export type { ApiError, ApiResult };
+export type { ApiError, ApiResult }; 

@@ -228,4 +228,4 @@ export const Alert: React.FC<AlertProps> = ({ type, message, className = '' }) =
       {message}
     </div>
   );
-};
+}; 

@@ -2,9 +2,9 @@ import React, { ReactNode, useState } from 'react';
 import { UseFormRegister, FieldValues, FieldError, UseFormReturn, useForm, Path, UseFormSetError, DefaultValues } from 'react-hook-form';
 import { ZodType } from 'zod';
 import { ApiResult } from '../types/api';
-import { Alert, Spinner, Button, Link } from './UIComponents';
-import { getErrorMessages } from '../utils/errors';
-import { ErrorWithAction } from '../utils/errors';
+import { Alert, Spinner, Button, Link } from '../../shared/components/UIComponents';
+import { getErrorMessages } from '../../shared/utils/errors';
+import { ErrorWithAction } from '../../shared/utils/errors';
 
 // Form input with error display
 interface FormInputProps {
@@ -245,4 +245,4 @@ export function useFormWithApi<TFormValues extends FieldValues, TResponse>(
     isSubmitting,
     globalError
   };
-}
+} 

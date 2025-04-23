@@ -1,14 +1,12 @@
 import { Plugin } from 'vite';
 import { renderToString } from 'react-dom/server';
-import { StaticRouter } from 'react-router-dom/server';
 import { createElement } from 'react';
 import * as fs from 'fs';
 import * as path from 'path';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
-// Import your App component and routes
 import App from './src/site/App';
-
-const routes = ['/', '/about'];
+import { routes } from './src/site/router';
 
 export default function prerender(): Plugin {
   return {
@@ -18,10 +16,12 @@ export default function prerender(): Plugin {
       const template = fs.readFileSync(path.resolve('dist/site/index.html'), 'utf-8');
       
       for (const route of routes) {
+        const router = createMemoryRouter(routes, {
+          initialEntries: [route.path],
+        });
+
         const content = renderToString(
-          createElement(StaticRouter, { location: route },
-            createElement(App)
-          )
+          createElement(RouterProvider, { router })
         );
 
         const html = template.replace(
@@ -31,7 +31,7 @@ export default function prerender(): Plugin {
 
         const outputPath = path.join(
           'dist/site',
-          route === '/' ? 'index.html' : route.slice(1) + '.html'
+          route.path === '/' ? 'index.html' : route.path.slice(1) + '.html'
         );
 
         fs.mkdirSync(path.dirname(outputPath), { recursive: true });

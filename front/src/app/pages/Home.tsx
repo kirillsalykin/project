@@ -4,15 +4,15 @@ import { useAuth } from '../components/Auth';
 import { useProcedure } from '../lib/api';
 import { Procedures } from '../bindings';
 
-type UserData = Procedures['me']['output'];
+type UserData = Procedures['membership/me']['output'];
 
 export const Home = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
-  const { getToken, signout } = useAuth();
+  const { signout } = useAuth();
   const navigate = useNavigate();
 
-  const { mutate: fetchMe } = useProcedure('me', {
+  const { mutate: fetchMe } = useProcedure('membership/me', {
     onSuccess: (data) => {
       setUserData(data);
       setLoading(false);
@@ -20,17 +20,12 @@ export const Home = () => {
   });
 
   useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      navigate('/app/sign-in');
-      return;
-    }
     fetchMe(null);
-  }, [getToken, navigate, fetchMe]);
+  }, [fetchMe]);
 
   const handleSignOut = () => {
     signout();
-    navigate('/app/sign-in');
+    navigate('/sign-in');
   };
 
   if (loading) {

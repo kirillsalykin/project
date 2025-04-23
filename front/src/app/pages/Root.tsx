@@ -14,7 +14,7 @@ export default function Root() {
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
-                <Link to="/app" className="text-xl font-bold text-gray-900">
+                <Link to="/" className="text-xl font-bold text-gray-900">
                   App
                 </Link>
               </div>
@@ -25,7 +25,7 @@ export default function Root() {
                   variant="secondary"
                   onClick={() => {
                     signout();
-                    navigate("/app/sign-in");
+                    navigate("/sign-in");
                   }}
                 >
                   Sign out

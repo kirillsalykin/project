@@ -6,7 +6,7 @@ import Root from './pages/Root';
 
 export const appRouter = createBrowserRouter([
   {
-    path: "/app",
+    path: "/",
     element: <Root />,
     children: [
       {
@@ -14,7 +14,7 @@ export const appRouter = createBrowserRouter([
         loader: async () => {
           const token = localStorage.getItem('authToken');
           if (!token) {
-            return redirect('/app/sign-in');
+            return redirect('/sign-in');
           }
           return null;
         },
@@ -36,5 +36,7 @@ export const appRouter = createBrowserRouter([
         element: <SignUp />,
       }
     ],
-  },
-]); 
+  }
+], {
+  basename: '/app'
+}); 

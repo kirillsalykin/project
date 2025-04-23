@@ -35,7 +35,7 @@ export interface MeOutput {
 }
 
 export type Procedures = {
-  signUp: { input: SignUpInput; output: AuthenticatedOutput; error: ApiError };
-  signIn: { input: SignUpInput; output: AuthenticatedOutput; error: ApiError };
-  me: { input: null; output: MeOutput; error: ApiError };
+  "membership/sign-up": { input: SignUpInput; output: AuthenticatedOutput; error: ApiError };
+  "membership/sign-in": { input: SignUpInput; output: AuthenticatedOutput; error: ApiError };
+  "membership/me": { input: null; output: MeOutput; error: ApiError };
 };

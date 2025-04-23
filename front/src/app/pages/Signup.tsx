@@ -6,17 +6,17 @@ import { useForm } from 'react-hook-form';
 import { Procedures } from '../bindings';
 import { useProcedure } from '../lib/api';
 
-type SignUpFormValues = Procedures['signUp']['input'];
+type SignUpFormValues = Procedures['membership/sign-up']['input'];
 
 const SignUp = () => {
   const { signin } = useAuth();
   const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors } } = useForm<SignUpFormValues>();
 
-  const { mutate: signUp, isPending } = useProcedure('signUp', {
+  const { mutate: signUp, isPending } = useProcedure('membership/sign-up', {
     onSuccess: (data) => {
       signin(data.token);
-      navigate('/app');
+      navigate('/');
     }
   });
 
@@ -57,7 +57,7 @@ const SignUp = () => {
         <CardFooter>
           <p>
             Already have an account?{' '}
-            <Link to="/app/sign-in">Sign in</Link>
+            <Link to="/sign-in">Sign in</Link>
           </p>
         </CardFooter>
       </Card>

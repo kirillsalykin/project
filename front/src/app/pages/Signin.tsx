@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { Procedures } from '../bindings';
 import { useProcedure } from '../lib/api';
 
-type SignInFormValues = Procedures['signIn']['input'];
+type SignInFormValues = Procedures['membership/sign-in']['input'];
 
 const SignIn = () => {
   const { signin } = useAuth();
@@ -14,10 +14,10 @@ const SignIn = () => {
 
   const { register, handleSubmit, formState: { errors } } = useForm<SignInFormValues>();
 
-  const { mutate: signIn, isPending } = useProcedure('signIn', {
+  const { mutate: signIn, isPending } = useProcedure('membership/sign-in', {
     onSuccess: (data) => {
       signin(data.token);
-      navigate('/app');
+      navigate('/');
     }
   });
 
@@ -58,7 +58,7 @@ const SignIn = () => {
         <CardFooter>
           <p>
             Don't have an account?{' '}
-            <Link to="/app/sign-up">Sign up</Link>
+            <Link to="/sign-up">Sign up</Link>
           </p>
         </CardFooter>
       </Card>

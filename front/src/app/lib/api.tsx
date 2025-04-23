@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider, useMutation } from '@tanstack/react-query';
 import { Procedures } from '../bindings';
 import React from 'react';
+import { useAuth } from '../components/Auth';
 
 const API_URL = 'http://localhost:8000';
 
@@ -13,13 +14,20 @@ class ApiClient {
 
   async call<T extends keyof Procedures>(
     procedure: T,
-    input: Procedures[T]['input']
+    input: Procedures[T]['input'],
+    token?: string | null
   ): Promise<Procedures[T]['output']> {
-    const response = await fetch(`${this.baseUrl}/api/${procedure}`, {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${this.baseUrl}/${procedure}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(input),
     });
 
@@ -42,8 +50,10 @@ export function useProcedure<T extends keyof Procedures>(
     onSuccess?: (data: Procedures[T]['output']) => void;
   }
 ) {
+  const { getToken } = useAuth();
+
   const mutation = useMutation({
-    mutationFn: (input: Procedures[T]['input']) => client.call(procedure, input),
+    mutationFn: (input: Procedures[T]['input']) => client.call(procedure, input, getToken()),
     onSuccess: options?.onSuccess
   });
 

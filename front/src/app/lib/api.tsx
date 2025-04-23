@@ -40,7 +40,7 @@ class ApiClient {
   }
 }
 
-const client = new ApiClient(API_URL);
+export const client = new ApiClient(API_URL);
 const queryClient = new QueryClient();
 
 export function useProcedure<T extends keyof Procedures>(

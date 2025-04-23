@@ -3,6 +3,7 @@ import { Home } from './pages/Home';
 import SignIn from './pages/Signin';
 import SignUp from './pages/Signup';
 import Root from './pages/Root';
+import { client } from './lib/api';
 
 export const appRouter = createBrowserRouter([
   {
@@ -22,6 +23,18 @@ export const appRouter = createBrowserRouter([
           {
             path: "",
             element: <Home />,
+            loader: async () => {
+              const token = localStorage.getItem('authToken');
+              if (!token) {
+                return redirect('/sign-in');
+              }
+              try {
+                const userData = await client.call('membership/me', null, token);
+                return { userData };
+              } catch (error) {
+                return redirect('/sign-in');
+              }
+            }
           },
           // Add other protected routes here
         ]

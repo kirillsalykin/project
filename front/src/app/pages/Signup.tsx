@@ -38,7 +38,7 @@ const SignUp = () => {
               id="email"
               label="Email address"
               type="email"
-              placeholder="kirill.salykin@gmail.com"
+              placeholder="you@example.com"
               register={register}
               error={errors.email}
               required

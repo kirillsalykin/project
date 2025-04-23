@@ -24,10 +24,9 @@ export default function prerender(): Plugin {
           createElement(RouterProvider, { router })
         );
 
-        const html = template.replace(
-          '<div id="root"></div>',
-          `<div id="root">${content}</div>`
-        );
+        const html = template
+          .replace('{{title}}', route.title)
+          .replace('{{content}}', content);
 
         const outputPath = path.join(
           'dist/site',

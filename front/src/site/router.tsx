@@ -6,10 +6,12 @@ export const routes = [
   {
     path: "/",
     element: <Landing />,
+    title: "Home | Your Site Name"
   },
   {
     path: "/about",
     element: <About />,
+    title: "About | Your Site Name"
   },
 ];
 

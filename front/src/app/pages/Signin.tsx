@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { Procedures } from '../bindings';
 import { useProcedure } from '../lib/api';
 
-type SignInFormValues = Procedures['sign_in']['input'];
+type SignInFormValues = Procedures['signIn']['input'];
 
 const SignIn = () => {
   const { signin } = useAuth();

@@ -109,7 +109,6 @@ pub enum UserCreationError {
     Error(anyhow::Error),
 }
 
-// TODO: map to ApiError?
 impl From<sqlx::Error> for UserCreationError {
     fn from(err: sqlx::Error) -> Self {
         UserCreationError::Error(err.into())
@@ -205,7 +204,7 @@ impl UserId {
 
 #[derive(Clone, Debug, Serialize, Distilled, sqlx::Type, sqlx::FromRow)]
 #[sqlx(transparent)]
-pub struct Email(String);
+pub struct Email(#[distilled(xforms(trim), rules(email))] String);
 
 #[derive(Debug, Distilled)]
 pub struct PlainTextPassword(String);

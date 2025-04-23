@@ -92,8 +92,7 @@ macro_rules! impl_procedure {
 
                     let input: Input = match Input::distill(&input_value) {
                         Ok(input) => input,
-                        Err(_) => {
-                            return "json_bad".into_response()
+                        Err(e) => { return ApiError::UnprocessableEntity(ValidationError::Fields(e)).into_response()
                         },
                     };
 

@@ -1,47 +1,29 @@
 import { useAuth } from '../components/Auth';
-import { AuthenticatedResponse, SignUpInput } from '../types/api';
-import { api } from '../services/api';
-import { Card, CardHeader, CardBody, CardFooter, Link } from '../components/UIComponents';
-import { Form, FormInput, useFormWithApi, FormContainer } from '../components/FormComponents';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { validation } from '../utils/validation';
+import { Card, CardHeader, CardBody, CardFooter, Link } from '../../shared/components/UIComponents';
+import { Form, FormInput, FormContainer } from '../components/FormComponents';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { Procedures } from '../bindings';
+import { useProcedure } from '../lib/api';
 
-interface SignInFormValues {
-  email: string;
-  password: string;
-}
+type SignInFormValues = Procedures['sign_in']['input'];
 
 const SignIn = () => {
   const { signin } = useAuth();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const emailFromUrl = searchParams.get('email');
 
-  // Handle successful signin
-  const handleSignInSuccess = (data: AuthenticatedResponse) => {
-    // TypeScript guarantees token exists per the type definition
-    signin(data.token);
-    navigate('/');
-  };
+  const { register, handleSubmit, formState: { errors } } = useForm<SignInFormValues>();
 
-  // Create form with API integration
-  const { 
-    register,
-    handleSubmit,
-    formState: { errors },
-    isSubmitting,
-    globalError
-  } = useFormWithApi<SignInFormValues, AuthenticatedResponse>(
-    // API method to call
-    (data) => api.post<AuthenticatedResponse>('/membership/sign-in', {
-      email: data.email,
-      password: data.password
-    } as SignUpInput),
-    // Success handler
-    handleSignInSuccess,
-    // Default values
-    emailFromUrl ? { email: emailFromUrl } : undefined
-  );
+  const { mutate: signIn, isPending } = useProcedure('signIn', {
+    onSuccess: (data) => {
+      signin(data.token);
+      navigate('/app');
+    }
+  });
+
+  const onSubmit = handleSubmit((data) => {
+    signIn(data);
+  });
 
   return (
     <FormContainer>
@@ -49,30 +31,26 @@ const SignIn = () => {
         <CardHeader title="Sign in to your account" />
         <CardBody>
           <Form
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-            globalError={globalError}
+            onSubmit={onSubmit}
+            isSubmitting={isPending}
             submitText="Sign in"
           >
             <FormInput
-              label="Email address"
               id="email"
+              label="Email address"
               type="email"
               placeholder="kirill.salykin@gmail.com"
               register={register}
               error={errors.email}
               required
-              validation={validation.email}
             />
-            
             <FormInput
-              label="Password"
               id="password"
+              label="Password"
               type="password"
               register={register}
               error={errors.password}
               required
-              validation={validation.password}
             />
           </Form>
         </CardBody>
@@ -80,7 +58,7 @@ const SignIn = () => {
         <CardFooter>
           <p>
             Don't have an account?{' '}
-            <Link to="/sign-up">Sign up</Link>
+            <Link to="/app/sign-up">Sign up</Link>
           </p>
         </CardFooter>
       </Card>

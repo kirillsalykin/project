@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../services/api';
 import { useAuth } from '../components/Auth';
+import { useProcedure } from '../lib/api';
+import { Procedures } from '../bindings';
 
-interface UserData {
-  id: string;
-  email: string;
-}
+type UserData = Procedures['me']['output'];
 
 export const Home = () => {
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -14,28 +12,25 @@ export const Home = () => {
   const { getToken, signout } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const token = getToken();
-        if (!token) {
-          throw new Error('No authentication token found');
-        }
-        const result = await api.post<UserData>('/membership/me', {}, token);
-        if (result.type === 'success') {
-          setUserData(result.data);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { mutate: fetchMe } = useProcedure('me', {
+    onSuccess: (data) => {
+      setUserData(data);
+      setLoading(false);
+    }
+  });
 
-    fetchUserData();
-  }, [getToken]);
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      navigate('/app/sign-in');
+      return;
+    }
+    fetchMe(null);
+  }, [getToken, navigate, fetchMe]);
 
   const handleSignOut = () => {
     signout();
-    navigate('/sign-in');
+    navigate('/app/sign-in');
   };
 
   if (loading) {

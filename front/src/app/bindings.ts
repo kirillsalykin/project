@@ -1,14 +1,41 @@
+
 export interface ErrorEntry {
   code: string;
   params: Record<string, any>;
 }
 
+export type Error =
+  | { [key: string]: Error }
+  | { [index: number]: Error }
+  | ErrorEntry;
+
 export interface ValidationError {
-  global?: ErrorEntry[];
-  [key: string]: ErrorEntry[] | undefined;
+  fields?: Error;
+  global?: Error;
 }
 
-export type ApiError = 
-  | { type: 'UnprocessableEntity'; error: ValidationError }
-  | { type: 'Unauthorized' }
-  | { type: 'InternalError' }; 
+export type ApiError =
+  | { type: "UnprocessableEntity"; error: ValidationError }
+  | { type: "Unauthorized" }
+  | { type: "InternalError" };
+
+
+export interface SignUpInput {
+  email: string;
+  password: string;
+}
+
+export interface AuthenticatedOutput {
+  token: string;
+}
+
+export interface MeOutput {
+  id: string;
+  email: string;
+}
+
+export type Procedures = {
+  signUp: { input: SignUpInput; output: AuthenticatedOutput; error: ApiError };
+  signIn: { input: SignUpInput; output: AuthenticatedOutput; error: ApiError };
+  me: { input: null; output: MeOutput; error: ApiError };
+};

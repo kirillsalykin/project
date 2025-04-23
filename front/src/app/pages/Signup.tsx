@@ -1,27 +1,23 @@
 import { useAuth } from '../components/Auth';
-import { Card, CardHeader, CardBody, CardFooter, Link } from '../components/UIComponents';
+import { Card, CardHeader, CardBody, CardFooter, Link } from '../../shared/components/UIComponents';
 import { Form, FormInput, FormContainer } from '../components/FormComponents';
 import { useNavigate } from 'react-router-dom';
-import { validation } from '../utils/validation';
-import { useProcedure } from '../lib/api';
 import { useForm } from 'react-hook-form';
-import { GlobalError } from '../components/GlobalError';
+import { Procedures } from '../bindings';
+import { useProcedure } from '../lib/api';
 
-interface SignUpFormValues {
-  email: string;
-  password: string;
-}
+type SignUpFormValues = Procedures['sign_up']['input'];
 
 const SignUp = () => {
   const { signin } = useAuth();
   const navigate = useNavigate();
-  const { register, handleSubmit, formState: { errors }, getValues } = useForm<SignUpFormValues>();
+  const { register, handleSubmit, formState: { errors } } = useForm<SignUpFormValues>();
 
-  const { mutate: signUp, isPending, error } = useProcedure('sign_up', {
+  const { mutate: signUp, isPending } = useProcedure('signUp', {
     onSuccess: (data) => {
       signin(data.token);
-      navigate('/');
-    },
+      navigate('/app');
+    }
   });
 
   const onSubmit = handleSubmit((data) => {
@@ -36,10 +32,8 @@ const SignUp = () => {
           <Form
             onSubmit={onSubmit}
             isSubmitting={isPending}
-            globalError={null}
             submitText="Create account"
           >
-            <GlobalError error={error} />
             <FormInput
               id="email"
               label="Email address"
@@ -48,7 +42,6 @@ const SignUp = () => {
               register={register}
               error={errors.email}
               required
-              validation={validation.email}
             />
             <FormInput
               id="password"
@@ -57,7 +50,6 @@ const SignUp = () => {
               register={register}
               error={errors.password}
               required
-              validation={validation.password}
             />
           </Form>
         </CardBody>
@@ -65,7 +57,7 @@ const SignUp = () => {
         <CardFooter>
           <p>
             Already have an account?{' '}
-            <Link to="/sign-in">Sign in</Link>
+            <Link to="/app/sign-in">Sign in</Link>
           </p>
         </CardFooter>
       </Card>

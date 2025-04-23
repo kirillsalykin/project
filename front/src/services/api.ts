@@ -55,6 +55,7 @@ export const api = {
       // Make the request
       const response = await fetch(url, options);
 
+     
       // Success response
       if (response.ok) {
         const data = await response.json();
@@ -64,7 +65,22 @@ export const api = {
         };
       }
 
-      // Only parse JSON for validation errors (422)
+
+      if (response.status === 403) {
+        const errorMessage = 'Your session has expired. Please sign in again.';
+        window.location.href = `/sign-in?error=${encodeURIComponent(errorMessage)}`;
+        return {
+          type: 'error',
+          error: {
+            _global: [{
+              code: 'unauthorized',
+              message: errorMessage,
+              params: { status: 403 }
+            }]
+          }
+        };
+      }
+
       if (response.status === 422) {
         try {
           const errorResponse: ApiError = await response.json();
@@ -73,14 +89,13 @@ export const api = {
             error: errorResponse
           };
         } catch (e) {
-          // If we can't parse JSON for 422, something is wrong with the API
           console.error('Failed to parse validation error response:', e);
           return {
             type: 'error',
             error: {
               _global: [{
                 code: 'api_error',
-                message: null,
+                message: 'An unexpected error occurred',
                 params: { status: response.status }
               }]
             }

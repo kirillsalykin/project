@@ -1,19 +1,26 @@
 import { messages } from './validation';
+import { ApiError } from '../services/api';
 
-export interface ApiError {
-  code: string;
-  params?: Record<string, any>;
-  field?: string;
+export interface ValidationError {
+  code: 'validation_error';
+  errors: Array<{
+    code: string;
+    message: string | null;
+    field?: string;
+  }>;
 }
 
-export interface ValidationError extends ApiError {
-  code: 'validation_error';
-  errors: ApiError[];
+export interface ErrorWithAction {
+  message: string;
+  code?: string;
+  action?: {
+    label: string;
+    to: string;
+  };
 }
 
 // Map server error codes to our shared messages
 const ERROR_MESSAGES: Record<string, (params: Record<string, any>) => string> = {
-  already_exists: () => messages.auth.alreadyExists,
   invalid_credentials: () => messages.auth.invalidCredentials,
   email: () => messages.email.invalid,
   length: (params) => messages.password.min(params.min || 4)
@@ -24,7 +31,13 @@ const HTTP_ERROR_MESSAGES: Record<string, string> = {
   network_error: messages.auth.networkError
 };
 
-function formatErrorMessage(error: ApiError): string {
+function formatErrorMessage(error: { code: string; message: string | null; params?: Record<string, any> }): string {
+  // Use the original error message if it exists
+  if (error.message) {
+    return error.message;
+  }
+  
+  // Fall back to mapped messages
   if (error.code in ERROR_MESSAGES) {
     return ERROR_MESSAGES[error.code](error.params || {});
   }
@@ -32,16 +45,18 @@ function formatErrorMessage(error: ApiError): string {
 }
 
 export function getErrorMessages(error: ApiError): { globalError?: string; fieldErrors?: Record<string, string> } {
-  if (error.code === 'validation_error') {
-    const validationError = error as ValidationError;
-    const fieldErrors: Record<string, string> = {};
-    validationError.errors?.forEach((err) => {
-      if (err.field) {
-        fieldErrors[err.field] = formatErrorMessage(err);
-      }
-    });
-    return { fieldErrors };
+  const { _global, ...fieldErrors } = error;
+  
+  if (_global) {
+    return { globalError: formatErrorMessage(_global[0]) };
   }
 
-  return { globalError: formatErrorMessage(error) };
+  const formattedErrors: Record<string, string> = {};
+  Object.entries(fieldErrors).forEach(([field, fieldError]) => {
+    if (fieldError) {
+      formattedErrors[field] = formatErrorMessage(fieldError[0]);
+    }
+  });
+
+  return { fieldErrors: formattedErrors };
 } 

@@ -1,10 +1,11 @@
 import { useAuth } from '../components/Auth';
-import { AuthenticatedResponse, SignUpInput } from '../types/api';
-import { api } from '../services/api';
 import { Card, CardHeader, CardBody, CardFooter, Link } from '../components/UIComponents';
-import { Form, FormInput, useFormWithApi, FormContainer } from '../components/FormComponents';
+import { Form, FormInput, FormContainer } from '../components/FormComponents';
 import { useNavigate } from 'react-router-dom';
 import { validation } from '../utils/validation';
+import { useProcedure } from '../lib/api';
+import { useForm } from 'react-hook-form';
+import { GlobalError } from '../components/GlobalError';
 
 interface SignUpFormValues {
   email: string;
@@ -14,42 +15,18 @@ interface SignUpFormValues {
 const SignUp = () => {
   const { signin } = useAuth();
   const navigate = useNavigate();
+  const { register, handleSubmit, formState: { errors }, getValues } = useForm<SignUpFormValues>();
 
-  // Success handler
-  const handleSignUpSuccess = (data: AuthenticatedResponse) => {
-    // TypeScript guarantees token exists per the type definition
-    signin(data.token);
-    navigate('/');
-  };
+  const { mutate: signUp, isPending, error } = useProcedure('sign_up', {
+    onSuccess: (data) => {
+      signin(data.token);
+      navigate('/');
+    },
+  });
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    isSubmitting,
-    globalError
-  } = useFormWithApi<SignUpFormValues, AuthenticatedResponse>(
-    // API method to call
-    (data) => api.post<AuthenticatedResponse>('/membership/sign-up', {
-      email: data.email,
-      password: data.password
-    } as SignUpInput),
-    // Success handler
-    handleSignUpSuccess,
-    undefined,
-    (error, formData) => {
-      if (error.code === 'already_exists') {
-        return {
-          ...error,
-          action: {
-            label: 'Sign in instead',
-            to: `/sign-in?email=${encodeURIComponent(formData.email)}`
-          }
-        };
-      }
-      return error;
-    }
-  );
+  const onSubmit = handleSubmit((data) => {
+    signUp(data);
+  });
 
   return (
     <FormContainer>
@@ -57,11 +34,12 @@ const SignUp = () => {
         <CardHeader title="Create a new account" />
         <CardBody>
           <Form
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-            globalError={globalError}
+            onSubmit={onSubmit}
+            isSubmitting={isPending}
+            globalError={null}
             submitText="Create account"
           >
+            <GlobalError error={error} />
             <FormInput
               id="email"
               label="Email address"

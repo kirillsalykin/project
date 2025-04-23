@@ -216,8 +216,7 @@ export function useFormWithApi<TFormValues extends FieldValues, TResponse>(
       } else {
         const { globalError: error, fieldErrors } = getErrorMessages(result.error);
         
-        // Set field errors
-        Object.entries(fieldErrors).forEach(([field, message]) => {
+        Object.entries(fieldErrors || {}).forEach(([field, message]) => {
           form.setError(field as Path<TFormValues>, { 
             type: 'server', 
             message 
@@ -226,7 +225,7 @@ export function useFormWithApi<TFormValues extends FieldValues, TResponse>(
         
         // Set global error if any
         if (error) {
-          setGlobalError(onError ? onError(error, data) : error);
+          setGlobalError(onError ? onError({ message: error }, data) : { message: error });
         }
       }
     } catch (err) {

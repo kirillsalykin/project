@@ -230,7 +230,7 @@ impl AsRef<str> for HashedPassword {
     }
 }
 
-#[derive(Clone, Serialize, sqlx::Type)]
+#[derive(Clone, Debug, Serialize, sqlx::Type)]
 #[sqlx(transparent)]
 pub struct SessionToken(Uuid);
 

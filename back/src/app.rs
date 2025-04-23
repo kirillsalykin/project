@@ -42,7 +42,7 @@ impl App {
             .with_state(state.clone());
 
         let private = Api::new()
-            .procedure("/membership/me", membership::me)
+            .procedure("membership/me", membership::me)
             .build()
             .layer(middleware::from_fn_with_state(
                 state.clone(),

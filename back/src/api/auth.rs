@@ -34,7 +34,7 @@ pub async fn authorization(
 
 async fn get_user_by_token(db: PgPool, token: &SessionToken) -> Result<Option<User>> {
     let user = sqlx::query_as::<_, User>(
-        "SELECT id, email FROM \"user\" JOIN session on session.user_id = \"user\".id WHERE token = $1",
+        "SELECT id, email, hashed_password FROM \"user\" JOIN session on session.user_id = \"user\".id WHERE token = $1",
     )
     .bind(token)
     .fetch_optional(&db)

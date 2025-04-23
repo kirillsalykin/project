@@ -1,5 +1,5 @@
 import { useAuth } from '../components/Auth';
-import { Card, CardHeader, CardBody, CardFooter, Link } from '../../shared/components/UIComponents';
+import { Card, CardHeader, CardBody, CardFooter, Link } from '../../shared/components';
 import { Form, FormInput, FormContainer } from '../components/FormComponents';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';

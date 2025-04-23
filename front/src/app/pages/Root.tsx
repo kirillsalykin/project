@@ -1,6 +1,6 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../components/Auth";
-import { Button, Link } from "../../shared/components/UIComponents";
+import { Button, Link } from "../../shared/components";
 
 export default function Root() {
   const { getToken, signout } = useAuth();

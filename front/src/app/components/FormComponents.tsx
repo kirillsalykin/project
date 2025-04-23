@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { UseFormRegister, FieldValues, FieldError, useForm, Path, DefaultValues } from 'react-hook-form';
-import { Alert, Spinner, Button, Link } from '../../shared/components/UIComponents';
+import { Alert, Spinner, Button, Link } from '../../shared/components';
 
 // Form input with error display
 interface FormInputProps {

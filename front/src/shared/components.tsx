@@ -1,39 +1,20 @@
 import React, { InputHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { colors } from '../styles/base';
 
 // Spinner component for loading states
 interface SpinnerProps {
-  size?: number;
-  color?: string;
   className?: string;
 }
 
 export const Spinner: React.FC<SpinnerProps> = ({ 
-  size = 16, 
-  color = colors.white,
   className = ''
 }) => {
   return (
     <span 
-      className={`inline-block border-2 rounded-full animate-spin mr-2 align-middle ${className}`}
-      style={{
-        width: size,
-        height: size,
-        borderColor: `${color}30`,
-        borderTopColor: color
-      }}
+      className={`inline-block w-4 h-4 border-2 rounded-full animate-spin mr-2 align-middle border-white/30 border-t-white ${className}`}
       role="status" 
       aria-label="Loading"
-    >
-      <style>
-        {`
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-        `}
-      </style>
-    </span>
+    />
   );
 };
 
@@ -52,7 +33,7 @@ export const Button: React.FC<ButtonProps> = ({
   className = '',
   ...rest 
 }) => {
-  const baseClasses = 'px-4 py-2.5 rounded-lg text-sm font-medium inline-block transition-all duration-200';
+  const baseClasses = 'px-4 py-2 rounded-md text-sm font-medium inline-block transition-all duration-200';
   const variantClasses = {
     primary: 'bg-primary hover:bg-primary-hover text-white shadow-sm hover:shadow',
     secondary: 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -68,7 +49,7 @@ export const Button: React.FC<ButtonProps> = ({
     >
       {isLoading ? (
         <span className="flex items-center justify-center">
-          <Spinner size={18} className="mr-3" />
+          <Spinner className="mr-3" />
           <span>Processing...</span>
         </span>
       ) : children}
@@ -162,7 +143,7 @@ interface CardProps {
 
 export const Card: React.FC<CardProps> = ({ children, className = '' }) => {
   return (
-    <div className={`bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden w-full ${className}`}>
+    <div className={`bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden w-full ${className}`}>
       {children}
     </div>
   );
@@ -176,7 +157,7 @@ interface CardHeaderProps {
 export const CardHeader: React.FC<CardHeaderProps> = ({ title, className = '' }) => {
   return (
     <div className={`px-8 py-6 text-center ${className}`}>
-      <h2 className="text-2xl font-semibold text-gray-900">{title}</h2>
+      <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
     </div>
   );
 };

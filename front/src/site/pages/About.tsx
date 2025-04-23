@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardHeader, CardBody } from '../../shared/components/UIComponents';
+import { Card, CardHeader, CardBody } from '../../shared/components';
 
 export default function About() {
   return (

@@ -36,13 +36,13 @@ impl App {
         let state = State(Arc::new(InnerState { db: pool.clone() }));
 
         let public = Api::new()
-            .procedure("membership/sign-up", membership::sign_up)
-            .procedure("membership/sign-in", membership::sign_in)
+            .mutation("membership/sign-up", membership::sign_up)
+            .mutation("membership/sign-in", membership::sign_in)
             .build()
             .with_state(state.clone());
 
         let private = Api::new()
-            .procedure("membership/me", membership::me)
+            .query("membership/me", membership::me)
             .build()
             .layer(middleware::from_fn_with_state(
                 state.clone(),

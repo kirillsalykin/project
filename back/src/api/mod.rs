@@ -124,7 +124,25 @@ where
         }
     }
 
-    pub fn procedure<F, Extractors, Input, Output, Error, T: 'static>(
+    pub fn query<F, Extractors, Input, Output, Error, T: 'static>(
+        mut self,
+        name: &str,
+        f: F,
+    ) -> Self
+    where
+        F: IntoProcedure<Extractors, Input, Output, Error>,
+        F::Procedure: Handler<T, S>,
+        Input: Distilled,
+        Output: Serialize,
+        Error: IntoResponse,
+    {
+        self.router = self
+            .router
+            .route(&format!("/{}", name), post(f.into_procedure()));
+        self
+    }
+
+    pub fn mutation<F, Extractors, Input, Output, Error, T: 'static>(
         mut self,
         name: &str,
         f: F,

@@ -1,5 +1,5 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { useAuth } from "../components/Auth";
+import { useAuth } from "../hooks/Auth";
 import { Button, Link } from "../../shared/components";
 
 export default function Root() {

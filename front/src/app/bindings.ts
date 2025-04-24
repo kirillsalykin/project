@@ -35,7 +35,7 @@ export interface MeOutput {
 }
 
 export type Procedures = {
-  "membership/sign-up": { input: SignUpInput; output: AuthenticatedOutput; error: ApiError };
-  "membership/sign-in": { input: SignUpInput; output: AuthenticatedOutput; error: ApiError };
-  "membership/me": { input: null; output: MeOutput; error: ApiError };
+  "membership/sign-up": { kind: "mutation", input: SignUpInput; output: AuthenticatedOutput; error: ApiError };
+  "membership/sign-in": { kind: "mutation", input: SignUpInput; output: AuthenticatedOutput; error: ApiError };
+  "membership/me": { kind: "query", input: null; output: MeOutput; error: ApiError };
 };

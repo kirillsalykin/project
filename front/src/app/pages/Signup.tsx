@@ -1,10 +1,10 @@
-import { useAuth } from '../components/Auth';
+import { useAuth } from '../hooks/Auth';
 import { Card, CardHeader, CardBody, CardFooter, Link } from '../../shared/components';
 import { Form, FormInput, FormContainer } from '../components/FormComponents';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Procedures } from '../bindings';
-import { useProcedure } from '../lib/api';
+import { useMutation } from '../lib/api';
 
 type SignUpFormValues = Procedures['membership/sign-up']['input'];
 
@@ -13,15 +13,15 @@ const SignUp = () => {
   const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors } } = useForm<SignUpFormValues>();
 
-  const { mutate: signUp, isPending } = useProcedure('membership/sign-up', {
-    onSuccess: (data) => {
-      signin(data.token);
-      navigate('/');
-    }
-  });
+  const { mutate: signUp, isPending } = useMutation('membership/sign-up');
 
   const onSubmit = handleSubmit((data) => {
-    signUp(data);
+    signUp(data, {
+      onSuccess: (response) => {
+        signin(response.token);
+        navigate('/');
+      }
+    });
   });
 
   return (

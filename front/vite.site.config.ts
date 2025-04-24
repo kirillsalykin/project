@@ -1,7 +1,11 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { resolve } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 import prerender from './vite-plugin-prerender';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export default defineConfig({
   plugins: [react(), prerender()],
@@ -13,6 +17,11 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'src/site/index.html'),
       },
+    },
+  },
+  resolve: {
+    alias: {
+      '@shared': resolve(__dirname, 'src/shared'),
     },
   },
   base: '/',

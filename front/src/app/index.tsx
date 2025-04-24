@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from './components/Auth';
+import { AuthProvider } from './hooks/Auth';
 import { RouterProvider } from 'react-router-dom';
 import { appRouter } from './router';
 import '../index.css';

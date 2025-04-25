@@ -1,24 +1,24 @@
-
 export interface ErrorEntry {
   code: string;
   params: Record<string, any>;
 }
 
-export type Error =
-  | { [key: string]: Error }
-  | { [index: number]: Error }
-  | ErrorEntry;
-
-export interface ValidationError {
-  fields?: Error;
-  global?: Error;
+export interface FieldsError {
+  type: 'fields';
+  data: Record<string, ErrorEntry>;
 }
+
+export interface GlobalError {
+  type: 'global';
+  data: ErrorEntry;
+}
+
+export type ValidationError = FieldsError | GlobalError;
 
 export type ApiError =
   | { type: "UnprocessableEntity"; error: ValidationError }
   | { type: "Unauthorized" }
   | { type: "InternalError" };
-
 
 export interface SignUpInput {
   email: string;

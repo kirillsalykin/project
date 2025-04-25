@@ -1,30 +1,37 @@
 import { useState } from 'react';
-import { useForm, FieldValues } from 'react-hook-form';
-import { ApiError, Error } from '../bindings';
+import { useForm, FieldValues, Path } from 'react-hook-form';
+import { ApiError } from '../bindings';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export function useFormError<T extends FieldValues>() {
   const [globalError, setGlobalError] = useState<string | null>(null);
   const { setError } = useForm<T>();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleError = (error: ApiError) => {
     setGlobalError(null);
 
-    if (error.type === 'UnprocessableEntity') {
-      // Handle field errors
-      if (error.error.fields) {
-        Object.entries(error.error.fields).forEach(([field, fieldError]) => {
-          setError(field as keyof T, {
-            type: 'manual',
-            message: getErrorMessage(fieldError)
+    switch (error.type) {
+      case 'UnprocessableEntity':
+        if (error.error.type === 'fields') {
+          Object.entries(error.error.data).forEach(([fieldName, errorEntry]) => {
+            setError(fieldName as Path<T>, {
+              type: 'manual',
+              message: errorEntry.code
+            });
           });
-        });
-      }
-      // Handle global errors
-      if (error.error.global) {
-        setGlobalError(getErrorMessage(error.error.global));
-      }
-    } else if (error.type === 'InternalError') {
-      setGlobalError('Something went wrong. Please try again later.');
+        } else if (error.error.type === 'global') {
+          setGlobalError(error.error.data.code);
+        }
+        break;
+      case 'InternalError':
+        setGlobalError('Something went wrong. Please try again in a moment.');
+        break;
+      case 'Unauthorized':
+        const returnTo = encodeURIComponent(location.pathname + location.search);
+        navigate(`/sign-in?returnTo=${returnTo}`);
+        break;
     }
   };
 
@@ -33,10 +40,4 @@ export function useFormError<T extends FieldValues>() {
     setGlobalError,
     handleError
   };
-}
-
-function getErrorMessage(error: Error): string {
-  if (typeof error === 'string') return error;
-  if ('code' in error) return error.code;
-  return 'Invalid value';
 } 

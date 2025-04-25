@@ -1,7 +1,7 @@
 import { useAuth } from '../hooks/Auth';
 import { Card, CardHeader, CardBody, CardFooter, Link, Alert } from '../../shared/components';
 import { Form, FormInput, FormContainer } from '../components/FormComponents';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Procedures, ApiError } from '../bindings';
 import { useMutation } from '../lib/api';
@@ -12,6 +12,7 @@ type SignInFormValues = Procedures['membership/sign-in']['input'];
 const SignIn = () => {
   const { signin } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { globalError, handleError } = useFormError<SignInFormValues>();
 
   const { register, handleSubmit, formState: { errors } } = useForm<SignInFormValues>();
@@ -22,7 +23,9 @@ const SignIn = () => {
     signIn(data, {
       onSuccess: (response) => {
         signin(response.token);
-        navigate('/');
+        const params = new URLSearchParams(location.search);
+        const returnTo = params.get('returnTo');
+        navigate(returnTo || '/');
       },
       onError: (error: ApiError) => {
         handleError(error);

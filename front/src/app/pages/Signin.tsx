@@ -1,16 +1,18 @@
 import { useAuth } from '../hooks/Auth';
-import { Card, CardHeader, CardBody, CardFooter, Link } from '../../shared/components';
+import { Card, CardHeader, CardBody, CardFooter, Link, Alert } from '../../shared/components';
 import { Form, FormInput, FormContainer } from '../components/FormComponents';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Procedures } from '../bindings';
+import { Procedures, ApiError } from '../bindings';
 import { useMutation } from '../lib/api';
+import { useFormError } from '../hooks/useFormError';
 
 type SignInFormValues = Procedures['membership/sign-in']['input'];
 
 const SignIn = () => {
   const { signin } = useAuth();
   const navigate = useNavigate();
+  const { globalError, handleError } = useFormError<SignInFormValues>();
 
   const { register, handleSubmit, formState: { errors } } = useForm<SignInFormValues>();
 
@@ -21,6 +23,9 @@ const SignIn = () => {
       onSuccess: (response) => {
         signin(response.token);
         navigate('/');
+      },
+      onError: (error: ApiError) => {
+        handleError(error);
       }
     });
   });
@@ -30,6 +35,9 @@ const SignIn = () => {
       <Card>
         <CardHeader title="Sign in to your account" />
         <CardBody>
+          {globalError && (
+            <Alert type="error" message={globalError} className="mb-4" />
+          )}
           <Form
             onSubmit={onSubmit}
             isSubmitting={isPending}

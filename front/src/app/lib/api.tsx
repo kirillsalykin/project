@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider, useMutation as useReactQueryMutation, useQuery as useReactQuery } from '@tanstack/react-query';
-import { Procedures } from '../bindings';
+import { Procedures, ApiError } from '../bindings';
 import React from 'react';
 import { useAuth } from '../hooks/Auth';
 import { config } from '../config';
@@ -26,18 +26,34 @@ class ApiClient {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${this.baseUrl}/${procedure}`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(input),
-    });
+    try {
+      const response = await fetch(`${this.baseUrl}/${procedure}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(input),
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw error as Procedures[T]['error'];
+      if (!response.ok) {
+        const error = await response.json();
+        switch (response.status) {
+          case 401:
+            throw { type: "Unauthorized" } as ApiError;
+          case 422:
+            throw { type: "UnprocessableEntity", error } as ApiError;
+          case 500:
+            throw { type: "InternalError" } as ApiError;
+          default:
+            throw { type: "InternalError" } as ApiError;
+        }
+      }
+
+      return response.json();
+    } catch (error) {
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw { type: "InternalError" } as ApiError;
+      }
+      throw error;
     }
-
-    return response.json();
   }
 }
 
@@ -70,8 +86,14 @@ export function useMutation<T extends Mutation>(
   const { getToken } = useAuth();
   const token = getToken();
 
-  return useReactQueryMutation({
-    mutationFn: (input: Procedures[T]['input']) => client.call(procedure, input, token)
+  return useReactQueryMutation<Procedures[T]['output'], ApiError, Procedures[T]['input']>({
+    mutationFn: (input: Procedures[T]['input']) => client.call(procedure, input, token),
+    onError: (error) => {
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw { type: "InternalError" } as ApiError;
+      }
+      throw error;
+    }
   });
 }
 

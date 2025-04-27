@@ -1,4 +1,4 @@
-1. run main.tf
+1. setup nodes & k3s
 
 ```
 export HCLOUD_TOKEN="hcloud_xxx…"
@@ -12,3 +12,19 @@ scp -o StrictHostKeyChecking=no root@<control_plane_id>:/etc/rancher/k3s/k3s.yam
 export KUBECONFIG=./kubeconfig.yaml
 ```
 
+2. setup flux
+
+```
+export GITHUB_USER=...
+export GITHUB_TOKEN=...
+
+flux bootstrap github \
+  --components-extra=image-reflector-controller,image-automation-controller \
+  --owner=$GITHUB_USER \
+  --repository=project \
+  --branch=main \
+  --path=infra/prod \
+  --read-write-key \
+  --personal
+
+```

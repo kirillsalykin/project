@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: hcloud-cloud-controller-manager
-      version: 3.3.0
+      version: 1.24.0
       sourceRef:
         kind: HelmRepository
         name: ccm

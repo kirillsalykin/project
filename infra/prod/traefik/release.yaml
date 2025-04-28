@@ -15,7 +15,7 @@ spec:
         name: traefik
         namespace: flux-system
   values:
-     log:
+    log:
       level: INFO
     accessLog:
       enabled: true
@@ -40,4 +40,4 @@ spec:
           default: true
       websecure:
         expose:
-          default: true
+          default: false

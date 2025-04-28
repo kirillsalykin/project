@@ -29,9 +29,9 @@ spec:
       web:
         expose:
           default: true
-      websecure:
-        expose:
-          default: true
-    additionalArguments:
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
+      # websecure:
+      #   expose:
+      #     default: true
+    # additionalArguments:
+    #   - "--entrypoints.web.address=:80"
+    #   - "--entrypoints.websecure.address=:443"

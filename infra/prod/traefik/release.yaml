@@ -24,6 +24,8 @@ spec:
       type: LoadBalancer
       annotations:
         load-balancer.hetzner.cloud/location: ash
+        load-balancer.hetzner.cloud/http-certificates: prostor.email
+        load-balancer.hetzner.cloud/hostname: prostor.email
         load-balancer.hetzner.cloud/use-private-ip: "true"
     ports:
       web:

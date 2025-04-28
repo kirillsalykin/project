@@ -6,4 +6,4 @@ metadata:
   namespace: flux-system
 spec:
   interval: 24h
-  url: https://hetzner.github.io/ccm-chart
+  url: https://charts.hetzner.cloud

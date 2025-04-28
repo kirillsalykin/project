@@ -15,9 +15,11 @@ spec:
         name: ccm
         namespace: flux-system
   values:
-    hcloud:
-      token:
-        secretKeyRef:
-          name: "hcloud-token"
-          key: token
-    clusterName: prod
+    secret:
+      existingSecretName: hcloud-token
+    config:
+      privateNetworks:
+        enabled: true
+        id: net
+        subnet: 10.10.0.0/16
+        disableAttachedCheck: false

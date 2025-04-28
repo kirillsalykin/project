@@ -15,6 +15,11 @@ spec:
         name: traefik
         namespace: flux-system
   values:
+    providers:
+      kubernetesIngress:
+        ingressClass: traefik
+        publishedService:
+          enabled: true
     service:
       type: LoadBalancer
       annotations:
@@ -27,3 +32,6 @@ spec:
       websecure:
         expose:
           default: true
+    additionalArguments:
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"

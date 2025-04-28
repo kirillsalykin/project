@@ -15,6 +15,10 @@ spec:
         name: traefik
         namespace: flux-system
   values:
+     log:
+      level: INFO
+    accessLog:
+      enabled: true
     providers:
       kubernetesIngress:
         ingressClass: traefik

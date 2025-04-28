@@ -31,7 +31,4 @@ spec:
           default: true
       websecure:
         expose:
-          default: false
-    additionalArguments:
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:"
+          default: true

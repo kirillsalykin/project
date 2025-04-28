@@ -131,7 +131,7 @@ if ${each.value.init}; then
 apiVersion: v1
 kind: Secret
 metadata:
-  name: hcloud-token
+  name: hcloud
   namespace: kube-system
 stringData:
   token: "${var.hcloud_token}"

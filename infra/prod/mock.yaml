@@ -40,7 +40,7 @@ spec:
       volumes:
       - name: html
         configMap:
-          name: site-html
+          name: site
 ---
 apiVersion: v1
 kind: Service
@@ -99,7 +99,7 @@ spec:
       volumes:
       - name: html
         configMap:
-          name: app-html
+          name: app
 ---
 apiVersion: v1
 kind: Service
@@ -158,7 +158,7 @@ spec:
       volumes:
       - name: html
         configMap:
-          name: api-html
+          name: api
 ---
 apiVersion: v1
 kind: Service

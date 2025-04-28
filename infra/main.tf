@@ -127,6 +127,7 @@ if ${each.value.init}; then
   done
 
   echo "Setting the secret"
+  HCLOUD_TOKEN="${var.hcloud_token}"
   cat <<SECRET | k3s kubectl apply -f -
 apiVersion: v1
 kind: Secret

@@ -127,7 +127,6 @@ if ${each.value.init}; then
   done
 
   echo "Setting the secret"
-  HCLOUD_TOKEN="${var.hcloud_token}"
   cat <<SECRET | k3s kubectl apply -f -
 apiVersion: v1
 kind: Secret
@@ -135,7 +134,8 @@ metadata:
   name: hcloud-token
   namespace: kube-system
 stringData:
-  hcloudApiToken: "$HCLOUD_TOKEN"
+  token: "${var.hcloud_token}"
+  network: "${hcloud_network.private_net.id}"
 SECRET
 
 else

@@ -135,7 +135,7 @@ metadata:
   name: hcloud-token
   namespace: kube-system
 stringData:
-  token: "$TOKEN"
+  hcloudApiToken: "$HCLOUD_TOKEN"
 SECRET
 
 else

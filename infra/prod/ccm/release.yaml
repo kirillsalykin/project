@@ -18,6 +18,6 @@ spec:
     hcloud:
       token:
         secretKeyRef:
-          name: hcloud-token
+          name: "hcloud-token"
           key: token
     clusterName: prod

@@ -20,7 +20,8 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - http:
+    - host: prostor.email
+      http:
         paths:
           - path: /
             pathType: Prefix

@@ -17,3 +17,13 @@ spec:
   values:
     service:
       type: LoadBalancer
+      annotations:
+        load-balancer.hetzner.cloud/location: ash
+        load-balancer.hetzner.cloud/use-private-ip: "true"
+    ports:
+      web:
+        expose:
+          default: true
+      websecure:
+        expose:
+          default: true

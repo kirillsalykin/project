@@ -27,4 +27,12 @@ flux bootstrap github \
   --read-write-key \
   --personal
 
+
 ```
+
+TODO:
+* firewall rules
+* traefik as chart
+* Hetzner Cloud Controller Manager
+* Hetzner CSI Driver
+* Rancher System Upgrade Controller

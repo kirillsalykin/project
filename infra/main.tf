@@ -3,13 +3,17 @@ terraform {
   required_providers {
     hcloud = {
       source  = "hetznercloud/hcloud"
-      version = "~> 1.48.1"
+      version = "~> 1.50.1"
     }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.4.0"
     }
   }
+}
+
+provider "hcloud" {
+  token = var.hcloud_token
 }
 
 variable "hcloud_token" {
@@ -114,13 +118,30 @@ CONTROL_PLANE_IP="${local.control_plane_ip}"
 if ${each.value.init}; then
   curl -sfL https://get.k3s.io | \
     K3S_TOKEN="$TOKEN" \
-    INSTALL_K3S_EXEC="--cluster-init --tls-san $CONTROL_PLANE_IP --disable servicelb" \
+    INSTALL_K3S_EXEC="--cluster-init --tls-san $CONTROL_PLANE_IP --disable servicelb --disable traefik" \
     sh -
+
+  echo "Waiting for k3s API..."
+  until k3s kubectl get --raw /healthz > /dev/null; do
+    sleep 1
+  done
+
+  echo "Setting the secret"
+  cat <<SECRET | k3s kubectl apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: hcloud-token
+  namespace: kube-system
+stringData:
+  token: "$TOKEN"
+SECRET
+
 else
   curl -sfL https://get.k3s.io | \
-    K3S_URL="https://$CONTROL_PLANE_IP:6443" \
     K3S_TOKEN="$TOKEN" \
-    INSTALL_K3S_EXEC="--disable servicelb" \
+    K3S_URL="https://$CONTROL_PLANE_IP:6443" \
+    INSTALL_K3S_EXEC="--tls-san $CONTROL_PLANE_IP --disable servicelb --disable traefik" \
     sh -
 fi
 EOF

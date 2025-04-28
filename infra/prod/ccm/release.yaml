@@ -16,7 +16,8 @@ spec:
         namespace: flux-system
   values:
     secret:
-      existingSecretName: hcloud-token
+      hcloudApiToken: "THE_TOKEN"
+      # existingSecretName: hcloud-token
     config:
       privateNetworks:
         enabled: true

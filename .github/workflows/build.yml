@@ -63,7 +63,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ${{ steps.vars.outputs.context }}
-          file: ${{ steps.vars.outputs.dockerfile }}
+          file: ${{ steps.vars.outputs.context }}/${{ steps.vars.outputs.dockerfile_name }}
           push: true
           tags: ghcr.io/${{ github.repository }}/${{ steps.vars.outputs.component }}:${{ steps.vars.outputs.version }}
           cache-from: type=gha

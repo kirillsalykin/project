@@ -37,8 +37,9 @@ kind: IngressRoute
 metadata:
   name: ingressroute
   namespace: default
+  annotations:
+    kubernetes.io/ingress.class: traefik
 spec:
-  ingressClassName: traefik
   entryPoints:
     - web
   routes:

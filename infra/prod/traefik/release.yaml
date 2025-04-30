@@ -6,6 +6,7 @@ metadata:
   namespace: traefik
 spec:
   interval: 5m
+
   chart:
     spec:
       chart: traefik
@@ -16,9 +17,9 @@ spec:
         namespace: flux-system
 
   install:
-    crdsPolicy: CreateReplace
+    crds: CreateReplace
   upgrade:
-    crdsPolicy: CreateReplace
+    crds: CreateReplace
 
   values:
     providers:

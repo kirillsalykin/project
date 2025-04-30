@@ -7,12 +7,7 @@ metadata:
   annotations:
     load-balancer.hetzner.cloud/location: ash
     load-balancer.hetzner.cloud/use-private-ip: "true"
-
-    # load-balancer.hetzner.cloud/protocol: https
-    # load-balancer.hetzner.cloud/health-check-protocol: http
-    # load-balancer.hetzner.cloud/health-check-path: /
-    # load-balancer.hetzner.cloud/health-check-port: "80"
-
+    load-balancer.hetzner.cloud/protocol: http,https
     load-balancer.hetzner.cloud/certificate-type: managed
     load-balancer.hetzner.cloud/http-managed-certificate-domains: prostor.email
 spec:
@@ -33,8 +28,6 @@ kind: Middleware
 metadata:
   name: strip-first-segment
   namespace: default
-  # annotations:
-  #   kubernetes.io/ingress.class: traefik
 spec:
   stripPrefixRegex:
     regex:
@@ -45,8 +38,6 @@ kind: IngressRoute
 metadata:
   name: ingressroute
   namespace: default
-  # annotations:
-  #   kubernetes.io/ingress.class: traefik
 spec:
   ingressClassName: traefik
   entryPoints:

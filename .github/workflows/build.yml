@@ -40,7 +40,7 @@ jobs:
               DOCKERFILE=front/Dockerfile.site
               ;;
             app)
-              DOCKERFILE=front/Dockerfile.app
+              DOCKERFILE=front/Dockerfile
               ;;
             api)
               DOCKERFILE=back/Dockerfile.api

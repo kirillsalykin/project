@@ -14,12 +14,11 @@ spec:
   type: LoadBalancer
   selector:
     app.kubernetes.io/name: traefik
-    # app.kubernetes.io/instance: traefik
   ports:
-    - name: web
+    - name: http
       port: 80
       targetPort: 8000
-    - name: websecure
+    - name: https
       port: 443
       targetPort: 8000
 ---

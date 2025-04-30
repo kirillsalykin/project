@@ -3,5 +3,5 @@ kind: Kustomization
 resources:
   - flux-system/gotk-components.yaml
   - flux-system/gotk-sync.yaml
-  # - traefik.yaml
-  # - app.yaml
+  - traefik.yaml
+  - app.yaml

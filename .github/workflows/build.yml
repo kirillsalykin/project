@@ -1,0 +1,66 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    tags:
+      - 'site-*'
+      - 'app-*'
+      - 'api-*'
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Parse tag and choose build config
+        id: vars
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}  # e.g., site-1
+          COMPONENT=${TAG%%-*}          # e.g., site
+          VERSION=${TAG#*-}             # e.g., 1
+
+          case "$COMPONENT" in
+            site)
+              DOCKERFILE=front/Dockerfile.site
+              ;;
+            app)
+              DOCKERFILE=front/Dockerfile.app
+              ;;
+            api)
+              DOCKERFILE=back/Dockerfile.api
+              ;;
+            *)
+              echo "Unknown component: $COMPONENT"
+              exit 1
+              ;;
+          esac
+
+          echo "component=$COMPONENT" >> $GITHUB_OUTPUT
+          echo "version=v$VERSION" >> $GITHUB_OUTPUT
+          echo "dockerfile=$DOCKERFILE" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ steps.vars.outputs.dockerfile }}
+          push: true
+          tags: ghcr.io/${{ github.repository }}/${{ steps.vars.outputs.component }}:${{ steps.vars.outputs.version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -6,6 +6,7 @@ metadata:
   namespace: traefik
   annotations:
     # reuse existing lb
+    # trigger the LB
     load-balancer.hetzner.cloud/name: "prod-api"
     load-balancer.hetzner.cloud/location: ash
     load-balancer.hetzner.cloud/use-private-ip: "true"

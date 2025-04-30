@@ -5,6 +5,8 @@ metadata:
   name: traefik
   namespace: traefik
   annotations:
+    # reuse existing lb
+    load-balancer.hetzner.cloud/name: "prod-api"
     load-balancer.hetzner.cloud/location: ash
     load-balancer.hetzner.cloud/use-private-ip: "true"
     load-balancer.hetzner.cloud/protocol: https
@@ -15,9 +17,6 @@ spec:
   selector:
     app.kubernetes.io/name: traefik
   ports:
-    # - name: http
-    #   port: 80
-    #   targetPort: 8000
     - name: https
       port: 443
       targetPort: 8000

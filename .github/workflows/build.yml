@@ -43,7 +43,7 @@ jobs:
               DOCKERFILE=front/Dockerfile
               ;;
             api)
-              DOCKERFILE=back/Dockerfile.api
+              DOCKERFILE=back/Dockerfile
               ;;
             *)
               echo "Unknown component: $COMPONENT"

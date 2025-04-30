@@ -1,7 +1,10 @@
-1. setup nodes & k3s
+1. setup nodes k3s
 
 ```
+
 op read "op://Private/Default/publicKey" > "$HOME/.ssh/id_rsa.pub" && chmod 644 "$HOME/.ssh/id_rsa.pub"
+
+hetzner-k3s create --config prod.yaml | tee create.log
 
 ```
 

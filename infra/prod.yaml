@@ -1,6 +1,6 @@
 ---
 cluster_name: prod
-kubeconfig_path: "./kubeconfig"
+kubeconfig_path: "./kubeconfig.yaml"
 k3s_version: v1.30.3+k3s1
 
 networking:
@@ -12,7 +12,7 @@ networking:
   allowed_networks:
     ssh:
       - 0.0.0.0/0
-    api: # this will firewall port 6443 on the nodes
+    api:
       - 0.0.0.0/0
   public_network:
     ipv4: true
@@ -74,7 +74,7 @@ embedded_registry_mirror:
 
 protect_against_deletion: true
 
-create_load_balancer_for_the_kubernetes_api: false # Just a heads up: right now, we can’t limit access to the load balancer by IP through the firewall. This feature hasn’t been added by Hetzner yet.
+create_load_balancer_for_the_kubernetes_api: true
 
 k3s_upgrade_concurrency: 1 # how many nodes to upgrade at the same time
 

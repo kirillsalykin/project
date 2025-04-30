@@ -14,26 +14,25 @@ spec:
         kind: HelmRepository
         name: traefik
         namespace: flux-system
+
+  install:
+    crdsPolicy: CreateReplace
+  upgrade:
+    crdsPolicy: CreateReplace
+
   values:
-    log:
-      level: INFO
-    accessLog:
-      enabled: true
     providers:
       kubernetesIngress:
+        enabled: false
+      kubernetesCRD:
+        enabled: true
         ingressClass: traefik
-        publishedService:
-          enabled: true
+      kubernetesGateway:
+        enabled: false
+
     service:
-      type: LoadBalancer
-      annotations:
-        load-balancer.hetzner.cloud/location: ash
-        load-balancer.hetzner.cloud/use-private-ip: "true"
-        load-balancer.hetzner.cloud/protocol: https
-        # load-balancer.hetzner.cloud/hostname: prostor.email
-        load-balancer.hetzner.cloud/certificate-type: managed
-        load-balancer.hetzner.cloud/http-managed-certificate-domains: prostor.email
-        load-balancer.hetzner.cloud/http-managed-certificate-name: prostor.email
+      enabled: false
+
     ports:
       web:
         expose:

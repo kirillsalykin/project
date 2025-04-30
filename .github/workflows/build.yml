@@ -37,13 +37,16 @@ jobs:
 
           case "$COMPONENT" in
             site)
-              DOCKERFILE=front/Dockerfile.site
+              CONTEXT=front
+              DOCKERFILE=Dockerfile.site
               ;;
             app)
-              DOCKERFILE=front/Dockerfile
+              CONTEXT=front
+              DOCKERFILE=Dockerfile
               ;;
             api)
-              DOCKERFILE=back/Dockerfile
+              CONTEXT=back
+              DOCKERFILE=Dockerfile
               ;;
             *)
               echo "Unknown component: $COMPONENT"
@@ -51,14 +54,15 @@ jobs:
               ;;
           esac
 
+          echo "context=$CONTEXT" >> $GITHUB_OUTPUT
+          echo "dockerfile=$DOCKERFILE" >> $GITHUB_OUTPUT
           echo "component=$COMPONENT" >> $GITHUB_OUTPUT
           echo "version=v$VERSION" >> $GITHUB_OUTPUT
-          echo "dockerfile=$DOCKERFILE" >> $GITHUB_OUTPUT
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ${{ steps.vars.outputs.context }}
           file: ${{ steps.vars.outputs.dockerfile }}
           push: true
           tags: ghcr.io/${{ github.repository }}/${{ steps.vars.outputs.component }}:${{ steps.vars.outputs.version }}

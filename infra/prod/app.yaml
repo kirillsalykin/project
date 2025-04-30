@@ -8,7 +8,7 @@ spec:
   dependsOn:
     - name: traefik
   interval: 5m
-  path: "./app"
+  path: "./infra/prod/app"
   prune: true
   sourceRef:
     kind: GitRepository

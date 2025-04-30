@@ -28,6 +28,6 @@ worker_node_pools: []
 embedded_registry_mirror:
   enabled: false
 
-protect_against_deletion: true
+protect_against_deletion: false
 
 create_load_balancer_for_the_kubernetes_api: true

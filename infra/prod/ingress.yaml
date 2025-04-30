@@ -10,7 +10,6 @@ metadata:
     load-balancer.hetzner.cloud/protocol: https
     load-balancer.hetzner.cloud/certificate-type: managed
     load-balancer.hetzner.cloud/http-managed-certificate-domains: prostor.email
-    load-balancer.hetzner.cloud/http-managed-certificate-name: prostor.email
 spec:
   type: LoadBalancer
   selector:

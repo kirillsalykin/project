@@ -22,7 +22,6 @@ spec:
     - name: websecure
       port: 443
       targetPort: 80
-
 ---
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
@@ -33,7 +32,6 @@ spec:
   stripPrefixRegex:
     regex:
       - "^/[^/]+"
-
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute

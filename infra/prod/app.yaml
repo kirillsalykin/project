@@ -12,5 +12,6 @@ spec:
     kind: GitRepository
     name: flux-system
   dependsOn:
+    - name: db
     - name: traefik
   wait: true

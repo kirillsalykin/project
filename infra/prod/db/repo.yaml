@@ -2,7 +2,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
-  name: traefik
+  name: postgres-operator
   namespace: flux-system
 spec:
   url: https://opensource.zalando.com/postgres-operator/charts/postgres-operator

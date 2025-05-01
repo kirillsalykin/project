@@ -1,15 +1,16 @@
-# ---
-# apiVersion: kustomize.toolkit.fluxcd.io/v1
-# kind: Kustomization
-# metadata:
-#   name: app
-#   namespace: flux-system
-# spec:
-#   dependsOn:
-#     - name: traefik
-#   interval: 5m
-#   path: "./infra/prod/app"
-#   prune: true
-#   sourceRef:
-#     kind: GitRepository
-#     name: flux-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: app
+  namespace: flux-system
+spec:
+  interval: 5m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: "./infra/prod/app"
+  dependsOn:
+    - name: traefik
+  wait: true
+  prune: true

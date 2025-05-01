@@ -6,7 +6,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 5m
-  path: "./infra/prod/traefik"
+  path: "./infra/prod/app"
   prune: true
   sourceRef:
     kind: GitRepository

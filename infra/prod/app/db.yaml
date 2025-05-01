@@ -4,6 +4,7 @@ metadata:
   name: psql
   namespace: db
 spec:
+  teamId: "acid"
   volume:
     size: 1Gi
   users:

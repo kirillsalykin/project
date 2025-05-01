@@ -1,0 +1,15 @@
+apiVersion: acid.zalan.do/v1
+kind: postgresql
+metadata:
+  name: psql
+  namespace: db
+spec:
+  volume:
+    size: 1Gi
+  users:
+    zalando:
+      - superuser
+  databases:
+    foo: zalando
+  postgresql:
+    version: "17"

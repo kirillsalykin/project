@@ -5,6 +5,7 @@ metadata:
   namespace: db
 spec:
   teamId: "acid"
+  spec.numberOfInstances: 1
   volume:
     size: 1Gi
   users:

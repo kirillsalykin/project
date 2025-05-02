@@ -14,4 +14,3 @@ spec:
   dependsOn:
     - name: db
     - name: traefik
-  wait: true

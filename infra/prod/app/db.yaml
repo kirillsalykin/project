@@ -2,9 +2,9 @@ apiVersion: acid.zalan.do/v1
 kind: postgresql
 metadata:
   name: psql
-  namespace: db
+  namespace: default
 spec:
-  teamId: "acid"
+  teamId: "default"
   numberOfInstances: 1
   volume:
     size: 1Gi

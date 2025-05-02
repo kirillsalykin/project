@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   releaseName: postgres-operator
-  targetNamespace: db
+  targetNamespace: kube-system
   interval: 5m
   chart:
     spec:

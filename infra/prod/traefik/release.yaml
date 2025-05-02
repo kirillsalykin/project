@@ -7,7 +7,7 @@ metadata:
 spec:
   interval: 5m
 
-  targetNamespace: traefik
+  targetNamespace: kube-system
 
   chart:
     spec:

@@ -9,9 +9,9 @@ spec:
   volume:
     size: 1Gi
   users:
-    zalando:
+    project:
       - superuser
   databases:
-    foo: zalando
+    project: project
   postgresql:
     version: "17"

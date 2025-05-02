@@ -1,3 +1,21 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: project.default.credentials
+  namespace: default
+spec:
+  encryptedData:
+    password: AgA06InvTF8UxOdaxWa7M1Gth8IDYoAnFpF0rObSTFfnkRi2XqqbSWp0aAptuGL3neZP65cmzAz/Lyopsutepq1ElCl6fXhxhefeXx/zL/juDAX0ZT4IGujEhId5P9Xq4lVmKW6UwQZ0tMgOzwPQRIzi1VYmta1zGD+utfkqhrxDC++2H3V4iUxXj/vB3hUdB+LcfKi0Vd50k6C71o9iVOKycHm23HfQNNLSAHiqb5xmsMvj4jzcma/AyzQ5rUTwVXZJGoeIqQRiVN3qHgcHt2z2JNJGZkqNhKOmchLSrADxKVsOGUM3ePjJEtLb3BjKYjU6WNRuQy2Z4YHDpfBJvWTt7ywkM+iYAlMmp3n6MKCj5nNTxeYsYdyt8L52mNvnJWh6FK+nwDbwlIpUgZmQwL+YCdKdwhTztdCGRyQSg04cYGqGhimGvrZY/Wxa1JBaunTsQvD32huFTchD+GlxzTyCPn4kgRa84LrXcCV+KZshkaCOj2Q43PIFfEFw3/cC+OsfUCmQZzJL6Rfc9fNRL/0N+ohTpb0OPX1HPmCwg4fyRxZU+trMuAMmGVjx5pYqg3yrx6tjUQBU7aYXcak72xvZZrFRCLI3zRFFCkns7RVS63cQq2JNK3hfD1FxQFScXvGBSJvy8KdIoZekHtsJAfjIIKD+BPWjCMFoDkGcI3sE4yfuD9Zms0w54nYL9abesTT59RoQeKEu6Xkz7I+1ihQ8W1SD
+    username: AgCvXkIMZENyCAyha1NgamFQvLZGkpkj5dwxgp4cuzfSrlRvssgGpiqWMKKCJ0aAGYe6D6mYFzBkyoHd9q3eEoaJx0+Sg6Tds9F16nFHZRkEsaqt3pO5SNtf/OYZAKiS2dropw0Hs7M/PCnV8A1t366aNSzpY9rw5S/VbKoVNqis779Sw/ABSYm8JUdjmzvg52yRAAAw/Id22wfAy+19Z6peg3JbL96J8unbOmn/+4xRSzNtp/E5lKnBnHsIQT9BeOFwC0k6iwbR+2eNK+1C1gDxlG2cKOU6JqqmmbOxIYb4PqITNSODDKqiCsMhUHG2JJfdpoiZu/EGqErZH387tQ4tGV4dId0aV+dnwfCftnPGXw0qk8zv+Ie4H6O+xOAXModmdUQliRlJRPYLtS1k70rbCp++iJgIPbkrE03EgcIUgy8BwaHFoUH2lYRljqGZGO8azatOSBWvV5bjwhkJ33L02DWa/yNqkPpvKOMYiGXD4kJt7LTprcH8SfFNPVnP+A6d+5WdtT5rOHh98YzyySwcgZ1+ftfnlnT0ipDPBZDmqtLWv3ulSjKqm4REPsVWSDBZg1oTPLonWaCQx64a4/v2Dpn0tTRbsvpm+oP162zgaMWWPF24cpI59Qqa2+8zLuCud96BErJGqH49aNfGXNKCQOu6fh4/ppbFUoc4W3RxRbXdhbjI8gb52tMKj+UitnvIo5KpoE16
+  template:
+    metadata:
+      creationTimestamp: null
+      name: project.default.credentials
+      namespace: default
+    type: Opaque
+---
 apiVersion: acid.zalan.do/v1
 kind: postgresql
 metadata:

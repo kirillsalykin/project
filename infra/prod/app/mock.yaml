@@ -33,16 +33,16 @@ spec:
       - name: nginx
         image: nginx:latest
         env:
-      - name: DATABASE_USERNAME
-        valueFrom:
-          secretKeyRef:
-            name: project.psql.credentials.postgresql.acid.zalan.do
-            key: username
-      - name: DATABASE_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: project.psql.credentials.postgresql.acid.zalan.do
-            key: password
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: project.psql.credentials.postgresql.acid.zalan.do
+              key: username
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: project.psql.credentials.postgresql.acid.zalan.do
+              key: password
         ports:
         - containerPort: 80
         volumeMounts:

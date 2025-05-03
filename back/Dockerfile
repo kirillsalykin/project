@@ -1,4 +1,4 @@
 FROM gcr.io/distroless/cc-debian12
 WORKDIR /app
-COPY project .
+COPY target/release/project .
 CMD ["./project"]

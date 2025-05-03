@@ -33,6 +33,5 @@ jobs:
           file: back/Dockerfile
           push: true
           tags: kirillsalykin/project:${{ github.ref_name }}
-          cache-from: type=gha
-          cache-to:   type=gha,mode=max
-
+          cache-from: type=gha,scope=be-cache
+          cache-to:   type=gha,mode=max,scope=be-cache

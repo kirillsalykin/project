@@ -26,20 +26,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Parse tag and set version
-        id: vars
-        run: |
-          TAG=${GITHUB_REF#refs/tags/}   # e.g., be-1
-          VERSION=${TAG#*-}              # e.g., 1
-          echo "version=v$VERSION" >> $GITHUB_OUTPUT
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: back
           file: back/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}/be:${{ steps.vars.outputs.version }}
+          tags: kirillsalykin/project:${{ github.ref_name }}
           cache-from: type=gha
           cache-to:   type=gha,mode=max
 

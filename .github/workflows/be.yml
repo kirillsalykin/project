@@ -1,4 +1,3 @@
-# .github/workflows/build-and-push-be.yml
 name: Build, Cache & Push BE Image
 
 on:
@@ -9,9 +8,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+
+    defaults:
+      run:
+        working-directory: back
 
     steps:
       - name: Checkout code

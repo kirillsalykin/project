@@ -40,7 +40,7 @@ jobs:
           context: back
           file: back/Dockerfile
           push: true
-          tags: kirillsalykin/project:${{ github.ref_name#refs/tags/ }}
+          tags: kirillsalykin/project:${{ github.ref_name }}
           registry: docker.io
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}

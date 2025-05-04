@@ -8,7 +8,8 @@ spec:
   imageRepositoryRef:
     name: default
   filterTags:
-    pattern: '^back-\d+$'
+    pattern: '^back-(?P<ver>[0-9]+)$'
+    extract: '$ver'
   policy:
     numerical:
       order: asc

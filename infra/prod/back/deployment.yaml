@@ -15,7 +15,7 @@ spec:
         app: back
     spec:
       imagePullSecrets:
-        - name: imagepull-cred-20ec9715
+        - name: imagepull-cred-8d1fddce
       containers:
       - name: back
         image: docker.io/kirillsalykin/project

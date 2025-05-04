@@ -2,8 +2,8 @@
 set -euo pipefail
 
 NAMESPACE=default
-BASE_NAME=dockerhub-cred
-SEALED_CERT=pub-cert.pem
+BASE_NAME=imagepull-cred
+SEALED_CERT=../pub-cert.pem
 
 : "${DOCKERHUB_USER:?Need to set DOCKERHUB_USER}"
 : "${DOCKERHUB_TOKEN:?Need to set DOCKERHUB_PASS}"

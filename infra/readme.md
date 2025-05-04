@@ -8,7 +8,9 @@ hetzner-k3s create --config prod.yaml | tee create.log
 
 ```
 
-2. setup flux
+2. install imagepull-cred
+
+3. setup flux
 
 ```
 flux bootstrap github \
@@ -20,5 +22,4 @@ flux bootstrap github \
   --path=infra/prod \
   --read-write-key \
   --personal
-
 ```

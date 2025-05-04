@@ -14,4 +14,3 @@ spec:
   dependsOn:
     - name: traefik
     - name: db
-    - name: image

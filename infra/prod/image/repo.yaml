@@ -8,4 +8,4 @@ spec:
   image: docker.io/kirillsalykin/project
   interval: 1m0s
   secretRef:
-    name: imagepull-cred-8d1fddce
+    name: imagepull-cred

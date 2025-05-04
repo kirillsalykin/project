@@ -47,5 +47,4 @@ jobs:
           context: back
           file: back/Dockerfile
           push: true
-          registry: docker.io
           tags: kirillsalykin/project:${{ github.ref_name }}

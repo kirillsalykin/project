@@ -23,13 +23,13 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-          key: deps-${{ hashFiles('**/Cargo.lock') }}
+          key: deps-${{ hashFiles('back/Cargo.lock') }}
 
       - name: Cache cargo build output
         uses: actions/cache@v3
         with:
-          path: target
-          key: build-${{ hashFiles('**/Cargo.lock') }}
+          path: back/target
+          key: build-${{ hashFiles('back/Cargo.lock') }}
 
       - name: Build project binary
         run: cargo build --release --locked

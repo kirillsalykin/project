@@ -3,7 +3,7 @@ name: Build, Cache & Push BE Image
 on:
   push:
     tags:
-      - 'be-*'
+      - 'back-*'
 
 jobs:
   build:
@@ -41,7 +41,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build & push BE image
+      - name: Build & push image
         uses: docker/build-push-action@v5
         with:
           context: back

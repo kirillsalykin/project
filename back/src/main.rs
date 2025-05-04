@@ -5,6 +5,7 @@ use project::configuration::Config;
 async fn main() {
     let config = config::Config::builder()
         .add_source(config::File::with_name("config.yml"))
+        .add_source(config::Environment::default().separator("_"))
         .build()
         .unwrap()
         .try_deserialize::<Config>()

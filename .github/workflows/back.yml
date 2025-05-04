@@ -23,7 +23,7 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-          key: deps-{{ hashFiles('**/Cargo.lock') }}
+          key: deps-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Cache cargo build output
         uses: actions/cache@v3

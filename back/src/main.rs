@@ -4,7 +4,7 @@ use project::configuration::Config;
 #[tokio::main]
 async fn main() {
     let config = config::Config::builder()
-        .add_source(config::File::with_name("config.yml"))
+        .add_source(config::File::with_name("config.yaml"))
         .add_source(config::Environment::default().separator("_"))
         .build()
         .unwrap()

@@ -6,11 +6,8 @@ metadata:
   namespace: flux-system
 spec:
   interval: 5m
-  path: "./infra/prod/app"
+  path: "./infra/prod/image"
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
-  dependsOn:
-    - name: db
-    - name: traefik

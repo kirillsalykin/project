@@ -6,6 +6,6 @@ resources:
   - traefik.yaml
   - db.yaml
   - sealed-secrets
-  - image
+  - image.yaml
   - back.yaml
   # - front.yaml

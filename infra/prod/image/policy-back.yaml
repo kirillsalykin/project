@@ -8,7 +8,7 @@ spec:
   imageRepositoryRef:
     name: default
   filterTags:
-    pattern: 'back-^\d+$'
+    pattern: '^back-\d+$'
   policy:
     numerical:
       order: asc

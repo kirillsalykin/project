@@ -2,7 +2,7 @@
 apiVersion: image.toolkit.fluxcd.io/v1beta1
 kind: ImageRepository
 metadata:
-  name: backend
+  name: default
   namespace: flux-system
 spec:
   image: docker.io/kirillsalykin/project

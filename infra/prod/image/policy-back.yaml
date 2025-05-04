@@ -6,7 +6,7 @@ metadata:
   namespace: flux-system
 spec:
   imageRepositoryRef:
-    name: image-repo
+    name: default
   filterTags:
     pattern: 'back-^\d+$'
   policy:

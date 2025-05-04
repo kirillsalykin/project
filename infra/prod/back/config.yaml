@@ -1,7 +1,7 @@
 app:
   addr: 0.0.0.0:5000
 database:
-  host: "psql-0"
+  host: "psql"
   port: 5432
   database: "project"
 

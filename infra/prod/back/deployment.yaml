@@ -17,19 +17,28 @@ spec:
       imagePullSecrets:
         - name: imagepull-cred
       containers:
-      - name: back
-        image: docker.io/kirillsalykin/project
-        env:
-        - name: DATABASE_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: project.psql.credentials.postgresql.acid.zalan.do
-              key: username
-        - name: DATABASE_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: project.psql.credentials.postgresql.acid.zalan.do
-              key: password
-        ports:
+        - name: back
+          image: docker.io/kirillsalykin/project
+          volumeMounts:
+            - name: config
+              mountPath: /app/config.yaml
+              subPath: config.yaml
+              readOnly: true
+          env:
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: project.psql.credentials.postgresql.acid.zalan.do
+                  key: username
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: project.psql.credentials.postgresql.acid.zalan.do
+                  key: password
+          ports:
             - name: http
               containerPort: 5000
+      volumes:
+        - name: config
+          configMap:
+            name: config

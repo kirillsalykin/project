@@ -8,3 +8,7 @@ resources:
 images:
   - name: docker.io/kirillsalykin/project
     newTag: "back-1" # {"$imagepolicy": "flux-system:back:tag"}
+configMapGenerator:
+- name: config
+  files:
+  - config.yaml

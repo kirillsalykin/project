@@ -1,0 +1,13 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: back
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: back
+  ports:
+  - name: http
+    port: 5000

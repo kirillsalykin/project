@@ -1,0 +1,17 @@
+apiVersion: acid.zalan.do/v1
+kind: postgresql
+metadata:
+  name: psql
+  namespace: default
+spec:
+  teamId: "default"
+  numberOfInstances: 1
+  volume:
+    size: 1Gi
+  users:
+    project:
+      - superuser
+  databases:
+    project: project
+  postgresql:
+    version: "17"

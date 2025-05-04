@@ -4,6 +4,8 @@ kind: Kustomization
 resources:
   - flux-system
   - traefik.yaml
-  - sealed-secrets
   - db.yaml
-  - app.yaml
+  - sealed-secrets
+  - image
+  - back.yaml
+  # - front.yaml

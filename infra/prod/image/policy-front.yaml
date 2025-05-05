@@ -1,0 +1,15 @@
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta1
+kind: ImagePolicy
+metadata:
+  name: front
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: default
+  filterTags:
+    pattern: '^front-(?P<ver>[0-9]+)$'
+    extract: '$ver'
+  policy:
+    numerical:
+      order: asc

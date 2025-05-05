@@ -5,4 +5,5 @@ resources:
   - automation.yaml
   - repo.yaml
   - policy-back.yaml
+  - policy-front.yaml
 

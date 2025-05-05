@@ -8,4 +8,4 @@ resources:
   - sealed-secrets
   - image
   - back.yaml
-  # - front.yaml
+  - front.yaml

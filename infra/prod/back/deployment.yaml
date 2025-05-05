@@ -36,7 +36,7 @@ spec:
                   name: project.psql.credentials.postgresql.acid.zalan.do
                   key: password
           ports:
-            - name: http
+            - name: back
               containerPort: 5000
       volumes:
         - name: config

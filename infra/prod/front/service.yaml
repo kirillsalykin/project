@@ -10,4 +10,5 @@ spec:
     app: front
   ports:
   - name: http
-    port: front
+    port: 5000
+    targetPort: front

@@ -10,4 +10,5 @@ spec:
     app: back
   ports:
   - name: http
-    port: back
+    port: 5000
+    targetPort: back

@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ingress
-  namespace: default
+  namespace: kube-system
   # annotations:
   #   load-balancer.hetzner.cloud/location: ash
   #   load-balancer.hetzner.cloud/use-private-ip: "true"

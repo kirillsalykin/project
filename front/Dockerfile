@@ -1,23 +1,28 @@
-FROM node:18-alpine as builder
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm install
-
-COPY . .
-
-RUN npm run build:site
-
-RUN npm run build:app
-
+# Dockerfile
 FROM nginx:alpine
 
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+RUN rm /etc/nginx/conf.d/default.conf \
+ && cat << 'EOF' > /etc/nginx/conf.d/default.conf
+server {
+    listen 80;
+    server_name localhost;
 
-COPY --from=builder /app/dist/site /usr/share/nginx/html/site
-COPY --from=builder /app/dist/app /usr/share/nginx/html/app
+    location / {
+        root /usr/share/nginx/html/site;
+        index index.html;
+        try_files $uri $uri.html $uri/ /index.html;
+    }
+
+    location /app {
+        alias /usr/share/nginx/html/app;
+        index index.html;
+        try_files $uri $uri/ /app/index.html;
+    }
+}
+EOF
+
+COPY dist/site  /usr/share/nginx/html/site
+COPY dist/app   /usr/share/nginx/html/app
 
 EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"] 
+CMD ["nginx", "-g", "daemon off;"]

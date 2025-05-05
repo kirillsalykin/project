@@ -1,4 +1,4 @@
-name: Build, Cache & Push BE Image
+name: Backend build
 
 on:
   push:

@@ -17,8 +17,8 @@ spec:
       imagePullSecrets:
         - name: imagepull-cred
       containers:
-        - name: back
+        - name: front
           image: docker.io/kirillsalykin/project
           ports:
             - name: front
-              containerPort: 5000
+              containerPort: 80

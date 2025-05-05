@@ -18,7 +18,7 @@ serde_json = { version = "1.0.140" }
 
 config = { version = "0.15.11", default-features = false, features = ["yaml"] }
 
-sqlx = { version = "0.8.2", features = ["runtime-tokio", "macros", "postgres", "migrate", "uuid", "chrono" ] }
+sqlx = { version = "0.8.2", features = ["runtime-tokio", "macros", "postgres", "tls-rustls-ring-webpki", "migrate", "uuid", "chrono" ] }
 
 axum = { version = "0.8.1", features = ["macros", "json"] }
 distilled = { git = "https://github.com/kirillsalykin/distilled", rev = "a35b37c", features = ["derive"] }

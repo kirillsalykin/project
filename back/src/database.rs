@@ -1,5 +1,5 @@
 use sqlx::PgPool;
-use sqlx::postgres::{PgConnectOptions, PgPoolOptions, PgSslMode};
+use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
 
 use crate::configuration::DatabaseConfig;
 
@@ -11,7 +11,6 @@ impl From<DatabaseConfig> for PgConnectOptions {
             .username(&config.username)
             .password(&config.password)
             .database(&config.database)
-            .ssl_mode(PgSslMode::Prefer)
     }
 }
 

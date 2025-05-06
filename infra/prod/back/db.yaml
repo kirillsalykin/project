@@ -5,9 +5,10 @@ metadata:
   namespace: default
 spec:
   teamId: "default"
-  numberOfInstances: 1
+  numberOfInstances: 3
   volume:
-    size: 1Gi
+    size: 20Gi
+    storageClass: "local-path"
   users:
     project:
       - superuser

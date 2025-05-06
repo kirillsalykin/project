@@ -15,8 +15,6 @@ networking:
     api:
       - 0.0.0.0/0
 
-schedule_workloads_on_masters: true
-
 masters_pool:
   instance_type: cpx11
   instance_count: 3
@@ -25,9 +23,14 @@ masters_pool:
 
 worker_node_pools: []
 
-embedded_registry_mirror:
-  enabled: false
-
 protect_against_deletion: false
 
+schedule_workloads_on_masters: true
+
 create_load_balancer_for_the_kubernetes_api: true
+
+local_path_storage_class:
+  enabled: true
+
+embedded_registry_mirror:
+  enabled: false

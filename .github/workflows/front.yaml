@@ -12,6 +12,9 @@ jobs:
       run:
         working-directory: front
 
+    env:
+      VITE_API_URL: "/api"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

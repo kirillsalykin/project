@@ -7,14 +7,7 @@ op read "op://Private/Default/publicKey" > "$HOME/.ssh/id_rsa.pub" && chmod 644 
 hetzner-k3s create --config prod.yaml | tee create.log
 ```
 
-2. install imagepull-cred
-
-```
-./imagepull-cred.sh
-
-```
-
-3. setup flux
+2. setup flux
 
 ```
 flux bootstrap github \
@@ -27,6 +20,15 @@ flux bootstrap github \
   --read-write-key \
   --personal
 ```
+
+
+3. install imagepull-cred
+
+```
+./imagepull-cred.sh
+
+```
+
 
 4. config-lb
 

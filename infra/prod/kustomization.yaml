@@ -5,7 +5,5 @@ resources:
   - flux-system
   - traefik.yaml
   - db.yaml
-  - sealed-secrets
   - image
-  - back.yaml
-  - front.yaml
+  - app.yaml

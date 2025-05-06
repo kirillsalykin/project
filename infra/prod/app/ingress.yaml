@@ -4,14 +4,7 @@ kind: Service
 metadata:
   name: ingress
   namespace: kube-system
-  # annotations:
-  #   load-balancer.hetzner.cloud/location: ash
-  #   load-balancer.hetzner.cloud/use-private-ip: "true"
-  #   load-balancer.hetzner.cloud/protocol: https
-  #   load-balancer.hetzner.cloud/certificate-type: managed
-  #   load-balancer.hetzner.cloud/http-managed-certificate-domains: prostor.email
 spec:
-  # type: LoadBalancer
   type: NodePort
   selector:
     app.kubernetes.io/name: traefik

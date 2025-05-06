@@ -6,4 +6,4 @@ resources:
   - service.yaml
 images:
   - name: docker.io/kirillsalykin/project
-    newTag: "front-4" # {"$imagepolicy": "flux-system:front:tag"}
+    newTag: "front-5" # {"$imagepolicy": "flux-system:front:tag"}
